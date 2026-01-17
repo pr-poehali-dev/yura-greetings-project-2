@@ -148,10 +148,16 @@ export default function AdminPanel() {
             </h1>
             <p className="text-muted-foreground mt-2">Управление планами этажей и номерами</p>
           </div>
-          <Button onClick={exportConfiguration} variant="outline" size="lg">
-            <Icon name="Download" className="mr-2" />
-            Экспортировать конфигурацию
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={() => window.location.href = '/'} variant="outline" size="lg">
+              <Icon name="Home" className="mr-2" />
+              Вернуться к сайту
+            </Button>
+            <Button onClick={exportConfiguration} variant="outline" size="lg">
+              <Icon name="Download" className="mr-2" />
+              Экспортировать конфигурацию
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="floors" className="space-y-6">
