@@ -20,30 +20,46 @@ interface Room {
 }
 
 const apartmentRooms: Room[] = [
-  { id: '1', number: '1', type: 'Стандарт', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
+  { id: '1', number: '1', type: 'Стандарт с видом на море', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
     position: { x: 3, y: 52, width: 30, height: 43 }, 
-    views: ['https://images.unsplash.com/photo-1502672260066-6bc05ed0d1cc', 'https://images.unsplash.com/photo-1566073771259-6a8506099945'], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона'] },
+    views: [
+      'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=1200',
+      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200',
+      'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=1200'
+    ], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона', 'Вид на море'] },
   
-  { id: '2', number: '2', type: 'Стандарт', area: 30, rooms: 1, capacity: 2, price: 6000, available: false, 
+  { id: '2', number: '2', type: 'Стандарт с видом на сад', area: 30, rooms: 1, capacity: 2, price: 6000, available: false, 
     position: { x: 3, y: 5, width: 30, height: 43 }, 
-    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
+    views: [
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200',
+      'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200',
+      'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=1200'
+    ], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Вид на сад'] },
   
-  { id: '3', number: '3', type: 'Комфорт', area: 38, rooms: 1, capacity: 3, price: 7500, available: true, 
+  { id: '3', number: '3', type: 'Комфорт (без окон)', area: 38, rooms: 1, capacity: 3, price: 7500, available: true, 
     position: { x: 37, y: 5, width: 26, height: 43 }, 
-    views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2', 'https://images.unsplash.com/photo-1502672260066-6bc05ed0d1cc'], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Мини-бар', 'Увеличенная площадь'] },
+    views: [], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Мини-бар', 'Увеличенная площадь', 'Дополнительная вентиляция'] },
   
-  { id: '4', number: '4', type: 'Стандарт', area: 31, rooms: 1, capacity: 2, price: 6200, available: true, 
+  { id: '4', number: '4', type: 'Стандарт с видом на сад', area: 31, rooms: 1, capacity: 2, price: 6200, available: true, 
     position: { x: 67, y: 5, width: 30, height: 43 }, 
-    views: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
+    views: [
+      'https://images.unsplash.com/photo-1566273110742-157776e3e551?w=1200',
+      'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1200',
+      'https://images.unsplash.com/photo-1588392382834-a891154bca4d?w=1200'
+    ], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Вид на сад'] },
   
-  { id: '5', number: '5', type: 'Стандарт', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
+  { id: '5', number: '5', type: 'Стандарт с видом на море', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
     position: { x: 67, y: 52, width: 30, height: 43 }, 
-    views: ['https://images.unsplash.com/photo-1556020685-ae41abfc9365', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона'] }
+    views: [
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200',
+      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200',
+      'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200'
+    ], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона', 'Вид на море'] }
 ];
 
 export default function RoomSelector() {
@@ -151,60 +167,78 @@ export default function RoomSelector() {
                   </p>
                 </DialogHeader>
 
-                <div className="relative">
-                  <div className="relative aspect-video rounded-xl overflow-hidden group">
-                    <img
-                      src={selectedRoom.views[currentImageIndex]}
-                      alt={`Вид ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent">
-                      <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
-                        <Icon name="Eye" size={20} />
-                        <span className="font-medium">Вид из окна {currentImageIndex + 1} из {selectedRoom.views.length}</span>
+                {selectedRoom.views.length > 0 ? (
+                  <div className="relative">
+                    <div className="relative aspect-video rounded-xl overflow-hidden group">
+                      <img
+                        src={selectedRoom.views[currentImageIndex]}
+                        alt={`Вид ${currentImageIndex + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent">
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
+                          <Icon name="Eye" size={20} />
+                          <span className="font-medium">Вид из окна {currentImageIndex + 1} из {selectedRoom.views.length}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {selectedRoom.views.length > 1 && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur hover:bg-background/95"
-                        onClick={() => setCurrentImageIndex((prev) => 
-                          prev === 0 ? selectedRoom.views.length - 1 : prev - 1
-                        )}
-                      >
-                        <Icon name="ChevronLeft" size={24} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur hover:bg-background/95"
-                        onClick={() => setCurrentImageIndex((prev) => 
-                          prev === selectedRoom.views.length - 1 ? 0 : prev + 1
-                        )}
-                      >
-                        <Icon name="ChevronRight" size={24} />
-                      </Button>
-                    </>
-                  )}
+                    {selectedRoom.views.length > 1 && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur hover:bg-background/95"
+                          onClick={() => setCurrentImageIndex((prev) => 
+                            prev === 0 ? selectedRoom.views.length - 1 : prev - 1
+                          )}
+                        >
+                          <Icon name="ChevronLeft" size={24} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur hover:bg-background/95"
+                          onClick={() => setCurrentImageIndex((prev) => 
+                            prev === selectedRoom.views.length - 1 ? 0 : prev + 1
+                          )}
+                        >
+                          <Icon name="ChevronRight" size={24} />
+                        </Button>
+                      </>
+                    )}
 
-                  <div className="flex justify-center gap-2 mt-4">
-                    {selectedRoom.views.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          currentImageIndex === idx 
-                            ? 'bg-primary w-8' 
-                            : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                        }`}
-                      />
-                    ))}
+                    <div className="flex justify-center gap-2 mt-4">
+                      {selectedRoom.views.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentImageIndex(idx)}
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            currentImageIndex === idx 
+                              ? 'bg-primary w-8' 
+                              : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <Card className="p-12 bg-muted/30 border-2 border-dashed border-muted-foreground/30 rounded-xl">
+                    <div className="text-center space-y-4">
+                      <div className="flex justify-center">
+                        <div className="p-4 bg-muted rounded-full">
+                          <Icon name="EyeOff" size={48} className="text-muted-foreground" />
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2">Номер без окон</h3>
+                        <p className="text-muted-foreground">
+                          Этот номер не имеет окон, но оснащён современной системой вентиляции и кондиционирования для максимального комфорта.
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                )}
 
                 <div className="grid md:grid-cols-3 gap-4">
                   <Card className="p-4 flex items-center gap-3 bg-primary/10 border-primary/30">
