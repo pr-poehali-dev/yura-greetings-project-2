@@ -23,18 +23,16 @@ const apartmentRooms: Room[] = [
   { id: '1', number: '1', type: 'Стандарт с видом на море', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
     position: { x: 3, y: 52, width: 30, height: 43 }, 
     views: [
-      'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=1200',
-      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200',
-      'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=1200'
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/3b8d131a-6a7a-4644-9b7b-509360e96ac1.jpg',
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/e3b5222f-4fe9-48eb-bbfa-677f5702338f.jpg'
     ], 
     amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона', 'Вид на море'] },
   
   { id: '2', number: '2', type: 'Стандарт с видом на сад', area: 30, rooms: 1, capacity: 2, price: 6000, available: false, 
     position: { x: 3, y: 5, width: 30, height: 43 }, 
     views: [
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200',
-      'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200',
-      'https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?w=1200'
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/65f83656-3536-4802-bb27-c11994f9532a.jpg',
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/735f6a9f-44f1-4ceb-b814-7940e31be2e3.jpg'
     ], 
     amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Вид на сад'] },
   
@@ -46,18 +44,16 @@ const apartmentRooms: Room[] = [
   { id: '4', number: '4', type: 'Стандарт с видом на сад', area: 31, rooms: 1, capacity: 2, price: 6200, available: true, 
     position: { x: 67, y: 5, width: 30, height: 43 }, 
     views: [
-      'https://images.unsplash.com/photo-1566273110742-157776e3e551?w=1200',
-      'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=1200',
-      'https://images.unsplash.com/photo-1588392382834-a891154bca4d?w=1200'
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/65f83656-3536-4802-bb27-c11994f9532a.jpg',
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/735f6a9f-44f1-4ceb-b814-7940e31be2e3.jpg'
     ], 
     amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Вид на сад'] },
   
   { id: '5', number: '5', type: 'Стандарт с видом на море', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
     position: { x: 67, y: 52, width: 30, height: 43 }, 
     views: [
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200',
-      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1200',
-      'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200'
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/3b8d131a-6a7a-4644-9b7b-509360e96ac1.jpg',
+      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/e3b5222f-4fe9-48eb-bbfa-677f5702338f.jpg'
     ], 
     amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона', 'Вид на море'] }
 ];
