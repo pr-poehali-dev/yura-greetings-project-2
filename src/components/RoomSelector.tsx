@@ -20,80 +20,30 @@ interface Room {
 }
 
 const apartmentRooms: Room[] = [
-  { id: '11', number: '11', type: 'Б-1', area: 45.61, rooms: 2, capacity: 4, price: 8500, available: true, 
-    position: { x: 2, y: 15, width: 8, height: 35 }, 
+  { id: '1', number: '1', type: 'Стандарт', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
+    position: { x: 3, y: 52, width: 30, height: 43 }, 
     views: ['https://images.unsplash.com/photo-1502672260066-6bc05ed0d1cc', 'https://images.unsplash.com/photo-1566073771259-6a8506099945'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона'] },
   
-  { id: '22', number: '22', type: 'Б-1', area: 23.10, rooms: 1, capacity: 2, price: 5500, available: true, 
-    position: { x: 10, y: 15, width: 6, height: 35 }, 
-    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
-    amenities: ['Wi-Fi', 'Кондиционер', 'Телевизор'] },
+  { id: '2', number: '2', type: 'Стандарт', area: 30, rooms: 1, capacity: 2, price: 6000, available: false, 
+    position: { x: 3, y: 5, width: 30, height: 43 }, 
+    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
   
-  { id: '26', number: '26', type: 'Б-1', area: 46.48, rooms: 2, capacity: 4, price: 8900, available: false, 
-    position: { x: 16, y: 30, width: 7, height: 20 }, 
-    views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '16', number: '16', type: 'Б-1', area: 23.19, rooms: 1, capacity: 2, price: 5600, available: true, 
-    position: { x: 23, y: 30, width: 5, height: 20 }, 
-    views: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb'], 
-    amenities: ['Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '21', number: '21', type: 'А-2', area: 65.50, rooms: 3, capacity: 6, price: 12500, available: true, 
-    position: { x: 28, y: 20, width: 9, height: 30 }, 
-    views: ['https://images.unsplash.com/photo-1502672260066-6bc05ed0d1cc', 'https://images.unsplash.com/photo-1556020685-ae41abfc9365'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Мини-бар'] },
-  
-  { id: '19', number: '19', type: 'Б-1', area: 40.13, rooms: 2, capacity: 4, price: 7800, available: true, 
-    position: { x: 37, y: 25, width: 7, height: 25 }, 
-    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '25', number: '25', type: 'ВС', area: 46.48, rooms: 2, capacity: 4, price: 8900, available: true, 
-    position: { x: 44, y: 10, width: 7, height: 40 }, 
+  { id: '3', number: '3', type: 'Комфорт', area: 38, rooms: 1, capacity: 3, price: 7500, available: true, 
+    position: { x: 37, y: 5, width: 26, height: 43 }, 
     views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2', 'https://images.unsplash.com/photo-1502672260066-6bc05ed0d1cc'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Панорамный вид'] },
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Мини-бар', 'Увеличенная площадь'] },
   
-  { id: '27', number: '27', type: 'Б-1', area: 46.48, rooms: 2, capacity: 4, price: 8900, available: false, 
-    position: { x: 51, y: 10, width: 7, height: 20 }, 
-    views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
+  { id: '4', number: '4', type: 'Стандарт', area: 31, rooms: 1, capacity: 2, price: 6200, available: true, 
+    position: { x: 67, y: 5, width: 30, height: 43 }, 
+    views: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
   
-  { id: '23', number: '23', type: 'Б-1', area: 23.10, rooms: 1, capacity: 2, price: 5500, available: true, 
-    position: { x: 51, y: 30, width: 5, height: 20 }, 
-    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
-    amenities: ['Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '01', number: '01', type: 'Б-2', area: 38.19, rooms: 2, capacity: 4, price: 7500, available: true, 
-    position: { x: 58, y: 15, width: 7, height: 35 }, 
-    views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2', 'https://images.unsplash.com/photo-1502672260066-6bc05ed0d1cc'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '02', number: '02', type: 'Б-1', area: 23.10, rooms: 1, capacity: 2, price: 5500, available: true, 
-    position: { x: 65, y: 15, width: 6, height: 35 }, 
-    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
-    amenities: ['Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '06', number: '06', type: 'Б-1', area: 40.13, rooms: 2, capacity: 4, price: 7800, available: true, 
-    position: { x: 71, y: 25, width: 7, height: 25 }, 
-    views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '04', number: '04', type: 'Б-1', area: 23.19, rooms: 1, capacity: 2, price: 5600, available: false, 
-    position: { x: 78, y: 25, width: 5, height: 25 }, 
-    views: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb'], 
-    amenities: ['Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '03', number: '03', type: 'Б-1', area: 46.48, rooms: 2, capacity: 4, price: 8900, available: true, 
-    position: { x: 83, y: 30, width: 7, height: 20 }, 
-    views: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
-    amenities: ['Балкон', 'Wi-Fi', 'Кондиционер', 'Телевизор'] },
-  
-  { id: '05', number: '05', type: 'Б-1', area: 23.10, rooms: 1, capacity: 2, price: 5500, available: true, 
-    position: { x: 90, y: 15, width: 6, height: 35 }, 
-    views: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'], 
-    amenities: ['Wi-Fi', 'Кондиционер', 'Телевизор'] }
+  { id: '5', number: '5', type: 'Стандарт', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
+    position: { x: 67, y: 52, width: 30, height: 43 }, 
+    views: ['https://images.unsplash.com/photo-1556020685-ae41abfc9365', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2'], 
+    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона'] }
 ];
 
 export default function RoomSelector() {
@@ -112,9 +62,9 @@ export default function RoomSelector() {
         </div>
 
         <Card className="p-4 md:p-8 bg-card/50 backdrop-blur-sm border-2 border-primary/20 shadow-2xl">
-          <div className="relative w-full aspect-[16/6] bg-background rounded-xl overflow-hidden">
+          <div className="relative w-full aspect-[3/2] bg-background rounded-xl overflow-hidden">
             <img 
-              src="https://cdn.poehali.dev/files/floor_common.jpg" 
+              src="https://cdn.poehali.dev/files/этаж 1.jpg" 
               alt="План этажа"
               className="absolute inset-0 w-full h-full object-contain"
             />
