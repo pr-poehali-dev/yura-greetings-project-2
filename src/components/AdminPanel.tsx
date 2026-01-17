@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -37,6 +40,8 @@ export default function AdminPanel() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStart, setDrawStart] = useState<{ x: number; y: number } | null>(null);
   const [imageRef, setImageRef] = useState<HTMLDivElement | null>(null);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Room>>({});
 
   const handleFloorPlanUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,6 +179,46 @@ export default function AdminPanel() {
     });
   };
 
+  const openEditDialog = (room: Room) => {
+    setEditingRoom(room);
+    setEditFormData({
+      number: room.number,
+      type: room.type,
+      area: room.area,
+      rooms: room.rooms,
+      capacity: room.capacity,
+      price: room.price,
+      available: room.available,
+      amenities: room.amenities
+    });
+  };
+
+  const saveRoomEdits = () => {
+    if (!editingRoom) return;
+
+    setFloors(floors.map(f => ({
+      ...f,
+      rooms: f.rooms.map(r => 
+        r.id === editingRoom.id
+          ? { ...r, ...editFormData }
+          : r
+      )
+    })));
+
+    toast({
+      title: 'Изменения сохранены',
+      description: `Номер ${editFormData.number} обновлен`,
+    });
+
+    setEditingRoom(null);
+    setEditFormData({});
+  };
+
+  const updateAmenities = (amenitiesText: string) => {
+    const amenitiesArray = amenitiesText.split(',').map(a => a.trim()).filter(a => a);
+    setEditFormData({ ...editFormData, amenities: amenitiesArray });
+  };
+
   const exportConfiguration = () => {
     const config = JSON.stringify(floors, null, 2);
     const blob = new Blob([config], { type: 'application/json' });
@@ -307,26 +352,43 @@ export default function AdminPanel() {
                     {currentFloorData.rooms.map(room => (
                       <div
                         key={room.id}
-                        className="absolute group"
+                        className="absolute group cursor-pointer"
                         style={{
                           left: `${room.position.x}%`,
                           top: `${room.position.y}%`,
                           width: `${room.position.width}%`,
                           height: `${room.position.height}%`
                         }}
+                        onClick={() => openEditDialog(room)}
                       >
-                        <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg flex items-center justify-center relative">
+                        <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg flex items-center justify-center relative hover:bg-primary/40 transition-colors">
                           <span className="text-lg font-bold text-white drop-shadow-lg">
                             {room.number}
                           </span>
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                            onClick={() => deleteRoom(room.id)}
-                          >
-                            <Icon name="Trash2" size={16} />
-                          </Button>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                            <Button
+                              size="icon"
+                              variant="default"
+                              className="h-8 w-8 shadow-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditDialog(room);
+                              }}
+                            >
+                              <Icon name="Edit" size={16} />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="h-8 w-8 shadow-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteRoom(room.id);
+                              }}
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -417,6 +479,133 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <Dialog open={!!editingRoom} onOpenChange={(open) => !open && setEditingRoom(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            {editingRoom && (
+              <div className="space-y-6">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold">
+                    Редактирование номера {editingRoom.number}
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="room-number">Номер комнаты</Label>
+                    <Input
+                      id="room-number"
+                      value={editFormData.number || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, number: e.target.value })}
+                      placeholder="101"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="room-type">Тип номера</Label>
+                    <Select
+                      value={editFormData.type || ''}
+                      onValueChange={(value) => setEditFormData({ ...editFormData, type: value })}
+                    >
+                      <SelectTrigger id="room-type">
+                        <SelectValue placeholder="Выберите тип" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Стандарт">Стандарт</SelectItem>
+                        <SelectItem value="Комфорт">Комфорт</SelectItem>
+                        <SelectItem value="Люкс">Люкс</SelectItem>
+                        <SelectItem value="Стандарт с видом на море">Стандарт с видом на море</SelectItem>
+                        <SelectItem value="Стандарт с видом на сад">Стандарт с видом на сад</SelectItem>
+                        <SelectItem value="Комфорт (без окон)">Комфорт (без окон)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="room-area">Площадь (м²)</Label>
+                    <Input
+                      id="room-area"
+                      type="number"
+                      value={editFormData.area || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, area: Number(e.target.value) })}
+                      placeholder="30"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="room-rooms">Количество комнат</Label>
+                    <Input
+                      id="room-rooms"
+                      type="number"
+                      value={editFormData.rooms || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, rooms: Number(e.target.value) })}
+                      placeholder="1"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="room-capacity">Вместимость (гостей)</Label>
+                    <Input
+                      id="room-capacity"
+                      type="number"
+                      value={editFormData.capacity || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
+                      placeholder="2"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="room-price">Цена (₽/сутки)</Label>
+                    <Input
+                      id="room-price"
+                      type="number"
+                      value={editFormData.price || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, price: Number(e.target.value) })}
+                      placeholder="6000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="room-available">Статус доступности</Label>
+                  <Select
+                    value={editFormData.available ? 'true' : 'false'}
+                    onValueChange={(value) => setEditFormData({ ...editFormData, available: value === 'true' })}
+                  >
+                    <SelectTrigger id="room-available">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Доступен</SelectItem>
+                      <SelectItem value="false">Занят</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="room-amenities">Удобства (через запятую)</Label>
+                  <Textarea
+                    id="room-amenities"
+                    value={editFormData.amenities?.join(', ') || ''}
+                    onChange={(e) => updateAmenities(e.target.value)}
+                    placeholder="Ванная комната, Wi-Fi, Кондиционер, Телевизор"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button onClick={saveRoomEdits} className="flex-1" size="lg">
+                    <Icon name="Save" className="mr-2" />
+                    Сохранить изменения
+                  </Button>
+                  <Button onClick={() => setEditingRoom(null)} variant="outline" size="lg">
+                    Отмена
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
