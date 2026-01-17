@@ -62,6 +62,7 @@ export default function RoomSelector() {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted p-4 md:p-6">
@@ -150,6 +151,64 @@ export default function RoomSelector() {
           </div>
         </Card>
 
+        <Dialog open={isImageZoomed} onOpenChange={setIsImageZoomed}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-0">
+            {selectedRoom && selectedRoom.views.length > 0 && (
+              <div className="relative w-full h-[95vh] flex items-center justify-center">
+                <img
+                  src={selectedRoom.views[currentImageIndex]}
+                  alt={`Вид ${currentImageIndex + 1}`}
+                  className="max-w-full max-h-full object-contain"
+                />
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 text-white hover:bg-white/20"
+                  onClick={() => setIsImageZoomed(false)}
+                >
+                  <Icon name="X" size={24} />
+                </Button>
+
+                {selectedRoom.views.length > 1 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 h-12 w-12"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentImageIndex((prev) => 
+                          prev === 0 ? selectedRoom.views.length - 1 : prev - 1
+                        );
+                      }}
+                    >
+                      <Icon name="ChevronLeft" size={32} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 h-12 w-12"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentImageIndex((prev) => 
+                          prev === selectedRoom.views.length - 1 ? 0 : prev + 1
+                        );
+                      }}
+                    >
+                      <Icon name="ChevronRight" size={32} />
+                    </Button>
+                  </>
+                )}
+
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full text-white">
+                  {currentImageIndex + 1} / {selectedRoom.views.length}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={!!selectedRoom} onOpenChange={(open) => !open && setSelectedRoom(null)}>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             {selectedRoom && (
@@ -165,7 +224,10 @@ export default function RoomSelector() {
 
                 {selectedRoom.views.length > 0 ? (
                   <div className="relative">
-                    <div className="relative aspect-video rounded-xl overflow-hidden group">
+                    <div 
+                      className="relative aspect-video rounded-xl overflow-hidden group cursor-zoom-in"
+                      onClick={() => setIsImageZoomed(true)}
+                    >
                       <img
                         src={selectedRoom.views[currentImageIndex]}
                         alt={`Вид ${currentImageIndex + 1}`}
@@ -175,6 +237,9 @@ export default function RoomSelector() {
                         <div className="absolute bottom-4 left-4 flex items-center gap-2 text-white">
                           <Icon name="Eye" size={20} />
                           <span className="font-medium">Вид из окна {currentImageIndex + 1} из {selectedRoom.views.length}</span>
+                        </div>
+                        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Icon name="Maximize2" size={20} className="text-white" />
                         </div>
                       </div>
                     </div>
