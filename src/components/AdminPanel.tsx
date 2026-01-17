@@ -315,19 +315,19 @@ export default function AdminPanel() {
                           height: `${room.position.height}%`
                         }}
                       >
-                        <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg flex items-center justify-center">
+                        <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg flex items-center justify-center relative">
                           <span className="text-lg font-bold text-white drop-shadow-lg">
                             {room.number}
                           </span>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            onClick={() => deleteRoom(room.id)}
+                          >
+                            <Icon name="Trash2" size={16} />
+                          </Button>
                         </div>
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => deleteRoom(room.id)}
-                        >
-                          <Icon name="Trash2" size={14} />
-                        </Button>
                       </div>
                     ))}
                   </div>
