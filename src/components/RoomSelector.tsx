@@ -112,11 +112,11 @@ export default function RoomSelector() {
         </div>
 
         <Card className="p-4 md:p-8 bg-card/50 backdrop-blur-sm border-2 border-primary/20 shadow-2xl">
-          <div className="relative w-full aspect-[16/6] bg-muted/30 rounded-xl border-2 border-dashed border-primary/30 overflow-hidden">
+          <div className="relative w-full aspect-[16/6] bg-background rounded-xl overflow-hidden">
             <img 
               src="https://cdn.poehali.dev/files/floor_common.jpg" 
               alt="План этажа"
-              className="absolute inset-0 w-full h-full object-contain opacity-40"
+              className="absolute inset-0 w-full h-full object-contain"
             />
             
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-background/90 backdrop-blur px-4 py-2 rounded-full shadow-lg z-30">
@@ -127,15 +127,12 @@ export default function RoomSelector() {
             {apartmentRooms.map(room => (
               <div
                 key={room.id}
-                className={`absolute cursor-pointer transition-all duration-300 group ${
-                  hoveredRoom === room.id ? 'z-20' : 'z-10'
-                }`}
+                className={`absolute cursor-pointer transition-all duration-200 group z-10`}
                 style={{
                   left: `${room.position.x}%`,
                   top: `${room.position.y}%`,
                   width: `${room.position.width}%`,
-                  height: `${room.position.height}%`,
-                  transform: hoveredRoom === room.id ? 'scale(1.05)' : 'scale(1)'
+                  height: `${room.position.height}%`
                 }}
                 onMouseEnter={() => setHoveredRoom(room.id)}
                 onMouseLeave={() => setHoveredRoom(null)}
@@ -145,43 +142,47 @@ export default function RoomSelector() {
                 }}
               >
                 <div
-                  className={`w-full h-full rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-300 ${
+                  className={`w-full h-full rounded-lg transition-all duration-200 ${
                     room.available
-                      ? 'bg-primary/20 border-primary hover:bg-primary/40 hover:border-secondary hover:shadow-xl hover:shadow-primary/50'
-                      : 'bg-destructive/20 border-destructive/50 cursor-not-allowed opacity-70'
-                  } ${hoveredRoom === room.id ? 'animate-pulse-glow' : ''}`}
-                >
-                  <span className="text-lg md:text-2xl font-bold">{room.number}</span>
-                  <span className="text-xs md:text-sm text-muted-foreground">{room.type}</span>
-                  {!room.available && (
-                    <Badge variant="destructive" className="mt-1 text-xs">
-                      Занят
-                    </Badge>
-                  )}
-                </div>
+                      ? 'hover:bg-primary/30 hover:ring-4 hover:ring-primary/50 hover:shadow-2xl hover:shadow-primary/50'
+                      : 'hover:bg-destructive/30 hover:ring-4 hover:ring-destructive/50 cursor-not-allowed'
+                  }`}
+                />
 
                 {hoveredRoom === room.id && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-background/95 backdrop-blur-sm border border-primary/30 rounded-lg p-3 shadow-2xl w-48 animate-scale-in pointer-events-none">
-                    <p className="text-sm font-semibold">Апартамент №{room.number}</p>
-                    <p className="text-xs text-muted-foreground">{room.type} • {room.rooms}-комн</p>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-background/95 backdrop-blur-sm border-2 border-primary/50 rounded-lg p-3 shadow-2xl w-56 animate-scale-in pointer-events-none z-50">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="text-base font-bold">№{room.number}</p>
+                        <p className="text-xs text-muted-foreground">{room.type} • {room.rooms}-комн</p>
+                      </div>
+                      {!room.available && (
+                        <Badge variant="destructive" className="text-xs">
+                          Занят
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 mt-2">
                       <Icon name="Maximize2" size={14} className="text-primary" />
                       <span className="text-xs">{room.area} м²</span>
                     </div>
-                    <p className="text-primary font-bold mt-2">{room.price.toLocaleString()} ₽/сутки</p>
+                    <p className="text-primary font-bold mt-2 text-lg">{room.price.toLocaleString()} ₽/сутки</p>
                   </div>
                 )}
               </div>
             ))}
 
-            <div className="absolute bottom-4 right-4 flex gap-4 z-30">
-              <div className="flex items-center gap-2 bg-background/90 backdrop-blur px-3 py-2 rounded-full shadow-lg">
-                <div className="w-4 h-4 rounded bg-primary border-2 border-primary" />
-                <span className="text-xs">Доступен</span>
-              </div>
-              <div className="flex items-center gap-2 bg-background/90 backdrop-blur px-3 py-2 rounded-full shadow-lg">
-                <div className="w-4 h-4 rounded bg-destructive/40 border-2 border-destructive" />
-                <span className="text-xs">Занят</span>
+            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur px-4 py-3 rounded-lg shadow-lg z-30 border border-primary/20">
+              <p className="text-xs text-muted-foreground mb-2">Наведите курсор на номер</p>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs">Доступен</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-destructive" />
+                  <span className="text-xs">Занят</span>
+                </div>
               </div>
             </div>
           </div>
