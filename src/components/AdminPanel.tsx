@@ -196,6 +196,11 @@ export default function AdminPanel() {
     reader.readAsText(file);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('admin-authenticated');
+    window.location.href = '/admin';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted p-4 md:p-6">
       <div className="max-w-[1800px] mx-auto space-y-6">
@@ -230,6 +235,10 @@ export default function AdminPanel() {
                   className="hidden"
                 />
               </label>
+            </Button>
+            <Button onClick={handleLogout} variant="destructive" size="lg">
+              <Icon name="LogOut" className="mr-2" />
+              Выйти
             </Button>
           </div>
         </div>
