@@ -68,6 +68,22 @@ export default function AdminPanel() {
     reader.readAsDataURL(file);
   };
 
+  const handleFloorDelete = (floorId: string) => {
+    const floor = floors.find(f => f.id === floorId);
+    if (!floor) return;
+
+    if (confirm(`Вы уверены, что хотите удалить план этажа ${floor.number}? Все номера на этом этаже также будут удалены.`)) {
+      setFloors(floors.filter(f => f.id !== floorId));
+      if (currentFloor === floorId) {
+        setCurrentFloor(floors[0]?.id || '');
+      }
+      toast({
+        title: 'План этажа удален',
+        description: `Этаж ${floor.number} был удален`,
+      });
+    }
+  };
+
   const handleRoomPhotosUpload = (files: FileList) => {
     const readers: Promise<string>[] = [];
     
@@ -238,6 +254,7 @@ export default function AdminPanel() {
               onRoomEdit={handleRoomEdit}
               onRoomDelete={handleRoomDelete}
               onFloorUpload={handleFloorPlanUpload}
+              onFloorDelete={handleFloorDelete}
             />
           </TabsContent>
 

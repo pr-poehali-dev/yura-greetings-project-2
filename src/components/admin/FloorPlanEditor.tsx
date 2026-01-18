@@ -35,6 +35,7 @@ interface FloorPlanEditorProps {
   onRoomEdit: (room: Room) => void;
   onRoomDelete: (roomId: string) => void;
   onFloorUpload: (file: File) => void;
+  onFloorDelete: (floorId: string) => void;
 }
 
 export default function FloorPlanEditor({
@@ -44,7 +45,8 @@ export default function FloorPlanEditor({
   onCurrentFloorChange,
   onRoomEdit,
   onRoomDelete,
-  onFloorUpload
+  onFloorUpload,
+  onFloorDelete
 }: FloorPlanEditorProps) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStart, setDrawStart] = useState<{ x: number; y: number } | null>(null);
@@ -124,21 +126,34 @@ export default function FloorPlanEditor({
           </div>
 
           {floors.length > 0 && (
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="floor-select">Выбрать этаж</Label>
-              <Select value={currentFloor} onValueChange={onCurrentFloorChange}>
-                <SelectTrigger id="floor-select">
-                  <SelectValue placeholder="Выберите этаж" />
-                </SelectTrigger>
-                <SelectContent>
-                  {floors.map(floor => (
-                    <SelectItem key={floor.id} value={floor.id}>
-                      Этаж {floor.number}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <>
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="floor-select">Выбрать этаж</Label>
+                <Select value={currentFloor} onValueChange={onCurrentFloorChange}>
+                  <SelectTrigger id="floor-select">
+                    <SelectValue placeholder="Выберите этаж" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {floors.map(floor => (
+                      <SelectItem key={floor.id} value={floor.id}>
+                        Этаж {floor.number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {currentFloorData && (
+                <Button
+                  onClick={() => onFloorDelete(currentFloor)}
+                  variant="destructive"
+                  size="lg"
+                >
+                  <Icon name="Trash2" className="mr-2" />
+                  Удалить этаж
+                </Button>
+              )}
+            </>
           )}
 
           {currentFloorData && (
