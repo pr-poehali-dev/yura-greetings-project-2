@@ -19,6 +19,7 @@ interface Room {
   views: string[];
   amenities: string[];
   bedTypes?: string[];
+  polygon?: { x: number; y: number }[];
 }
 
 interface Floor {
@@ -50,7 +51,9 @@ export default function FloorPlanEditor({
   onFloorDelete
 }: FloorPlanEditorProps) {
   const [isDrawing, setIsDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<'rectangle' | 'polygon'>('rectangle');
   const [drawStart, setDrawStart] = useState<{ x: number; y: number } | null>(null);
+  const [polygonPoints, setPolygonPoints] = useState<{ x: number; y: number }[]>([]);
   const [imageRef, setImageRef] = useState<HTMLDivElement | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,18 +61,22 @@ export default function FloorPlanEditor({
     if (file) onFloorUpload(file);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef || !isDrawing) return;
     
     const rect = imageRef.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    setDrawStart({ x, y });
+
+    if (drawMode === 'polygon') {
+      setPolygonPoints([...polygonPoints, { x, y }]);
+    } else {
+      setDrawStart({ x, y });
+    }
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef || !isDrawing || !drawStart) return;
+    if (!imageRef || !isDrawing || !drawStart || drawMode === 'polygon') return;
     
     const rect = imageRef.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -97,7 +104,8 @@ export default function FloorPlanEditor({
         height: Math.abs(y - drawStart.y)
       },
       views: [],
-      amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор']
+      amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор'],
+      bedTypes: []
     };
 
     onFloorsChange(floors.map(f => 
@@ -107,6 +115,59 @@ export default function FloorPlanEditor({
     ));
 
     setDrawStart(null);
+  };
+
+  const completePolygon = () => {
+    if (polygonPoints.length < 3) {
+      alert('Нужно минимум 3 точки для создания номера');
+      return;
+    }
+
+    const roomNumber = prompt('Введите номер комнаты:');
+    if (!roomNumber) {
+      setPolygonPoints([]);
+      return;
+    }
+
+    const xs = polygonPoints.map(p => p.x);
+    const ys = polygonPoints.map(p => p.y);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    const maxX = Math.max(...xs);
+    const maxY = Math.max(...ys);
+
+    const newRoom: Room = {
+      id: Date.now().toString(),
+      number: roomNumber,
+      type: 'Стандарт',
+      area: 30,
+      rooms: 1,
+      capacity: 2,
+      price: 6000,
+      available: true,
+      position: {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY
+      },
+      polygon: polygonPoints,
+      views: [],
+      amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор'],
+      bedTypes: []
+    };
+
+    onFloorsChange(floors.map(f => 
+      f.id === currentFloor 
+        ? { ...f, rooms: [...f.rooms, newRoom] }
+        : f
+    ));
+
+    setPolygonPoints([]);
+  };
+
+  const cancelPolygon = () => {
+    setPolygonPoints([]);
   };
 
   const currentFloorData = floors.find(f => f.id === currentFloor);
@@ -158,29 +219,78 @@ export default function FloorPlanEditor({
           )}
 
           {currentFloorData && (
-            <Button
-              onClick={() => setIsDrawing(!isDrawing)}
-              variant={isDrawing ? 'default' : 'outline'}
-              size="lg"
-            >
-              <Icon name={isDrawing ? 'Check' : 'PenTool'} className="mr-2" />
-              {isDrawing ? 'Завершить разметку' : 'Начать разметку'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setIsDrawing(!isDrawing);
+                  setPolygonPoints([]);
+                }}
+                variant={isDrawing ? 'default' : 'outline'}
+                size="lg"
+              >
+                <Icon name={isDrawing ? 'Check' : 'PenTool'} className="mr-2" />
+                {isDrawing ? 'Завершить разметку' : 'Начать разметку'}
+              </Button>
+              {isDrawing && (
+                <Select value={drawMode} onValueChange={(v) => setDrawMode(v as 'rectangle' | 'polygon')}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rectangle">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Square" size={16} />
+                        Прямоугольник
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="polygon">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Pentagon" size={16} />
+                        Произвольная форма
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           )}
         </div>
 
         {currentFloorData && (
           <div>
-            <p className="text-sm text-muted-foreground mb-4">
-              {isDrawing 
-                ? 'Кликните и перетащите мышью для создания зоны номера на плане этажа' 
-                : 'Нажмите "Начать разметку" для добавления номеров'}
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-muted-foreground">
+                {isDrawing 
+                  ? drawMode === 'polygon'
+                    ? 'Кликайте на план для создания точек контура. Минимум 3 точки.'
+                    : 'Кликните и перетащите мышью для создания прямоугольной зоны номера'
+                  : 'Нажмите "Начать разметку" для добавления номеров'}
+              </p>
+              {isDrawing && drawMode === 'polygon' && polygonPoints.length > 0 && (
+                <div className="flex gap-2">
+                  <Button onClick={completePolygon} size="sm" variant="default">
+                    <Icon name="Check" size={16} className="mr-1" />
+                    Завершить ({polygonPoints.length} точек)
+                  </Button>
+                  <Button onClick={cancelPolygon} size="sm" variant="outline">
+                    <Icon name="X" size={16} className="mr-1" />
+                    Отмена
+                  </Button>
+                </div>
+              )}
+            </div>
             <div
               ref={setImageRef}
               className="relative w-full aspect-[3/2] bg-background rounded-xl overflow-hidden border-2 border-border"
-              onMouseDown={handleMouseDown}
+              onMouseDown={drawMode === 'rectangle' ? (e) => {
+                if (!imageRef || !isDrawing) return;
+                const rect = imageRef.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                setDrawStart({ x, y });
+              } : undefined}
               onMouseUp={handleMouseUp}
+              onClick={drawMode === 'polygon' ? handleClick : undefined}
             >
               <img
                 src={currentFloorData.planImage}
@@ -198,39 +308,82 @@ export default function FloorPlanEditor({
                     width: `${room.position.width}%`,
                     height: `${room.position.height}%`
                   }}
-                  onClick={() => onRoomEdit(room)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRoomEdit(room);
+                  }}
                 >
-                  <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg flex items-center justify-center relative hover:bg-primary/40 transition-colors">
+                  {room.polygon ? (
+                    <svg
+                      className="absolute inset-0 w-full h-full pointer-events-none"
+                      viewBox="0 0 100 100"
+                      preserveAspectRatio="none"
+                    >
+                      <polygon
+                        points={room.polygon.map(p => 
+                          `${((p.x - room.position.x) / room.position.width) * 100},${((p.y - room.position.y) / room.position.height) * 100}`
+                        ).join(' ')}
+                        className="fill-primary/30 stroke-primary stroke-[2]"
+                      />
+                    </svg>
+                  ) : (
+                    <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg" />
+                  )}
+                  
+                  <div className="absolute inset-0 flex items-center justify-center hover:bg-primary/10 transition-colors">
                     <span className="text-lg font-bold text-white drop-shadow-lg">
                       {room.number}
                     </span>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="default"
-                        className="h-8 w-8 shadow-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRoomEdit(room);
-                        }}
-                      >
-                        <Icon name="Edit" size={16} />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8 shadow-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRoomDelete(room.id);
-                        }}
-                      >
-                        <Icon name="Trash2" size={16} />
-                      </Button>
-                    </div>
+                  </div>
+
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 pointer-events-auto">
+                    <Button
+                      size="icon"
+                      variant="default"
+                      className="h-8 w-8 shadow-lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRoomEdit(room);
+                      }}
+                    >
+                      <Icon name="Edit" size={16} />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-8 w-8 shadow-lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRoomDelete(room.id);
+                      }}
+                    >
+                      <Icon name="Trash2" size={16} />
+                    </Button>
                   </div>
                 </div>
               ))}
+
+              {isDrawing && drawMode === 'polygon' && polygonPoints.length > 0 && (
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  <polyline
+                    points={polygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                    className="fill-none stroke-primary stroke-[0.5]"
+                  />
+                  {polygonPoints.map((point, i) => (
+                    <circle
+                      key={i}
+                      cx={point.x}
+                      cy={point.y}
+                      r="0.8"
+                      className="fill-primary"
+                    />
+                  ))}
+                </svg>
+              )}
             </div>
           </div>
         )}

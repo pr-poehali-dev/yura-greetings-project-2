@@ -20,6 +20,7 @@ interface Room {
   views: string[];
   amenities: string[];
   bedTypes?: string[];
+  polygon?: { x: number; y: number }[];
 }
 
 interface RoomEditDialogProps {
