@@ -20,8 +20,9 @@ const Admin = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Пароль: admin123 (можно изменить)
-    if (password === 'admin123') {
+    const storedPassword = localStorage.getItem('admin-password') || 'admin123';
+    
+    if (password === storedPassword) {
       localStorage.setItem('admin-authenticated', 'true');
       setIsAuthenticated(true);
       setError('');

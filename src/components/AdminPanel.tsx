@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import FloorPlanEditor from '@/components/admin/FloorPlanEditor';
 import RoomPhotoManager from '@/components/admin/RoomPhotoManager';
 import RoomEditDialog from '@/components/admin/RoomEditDialog';
+import SettingsPanel from '@/components/admin/SettingsPanel';
 import { Room, Floor } from '@/components/admin/floorplan/types';
 
 const STORAGE_KEY = 'hotel-admin-floors';
@@ -244,7 +245,7 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="floors" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
             <TabsTrigger value="floors">
               <Icon name="Building2" className="mr-2" size={18} />
               Этажи
@@ -252,6 +253,10 @@ export default function AdminPanel() {
             <TabsTrigger value="rooms">
               <Icon name="DoorOpen" className="mr-2" size={18} />
               Номера
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Icon name="Settings" className="mr-2" size={18} />
+              Настройки
             </TabsTrigger>
           </TabsList>
 
@@ -279,6 +284,10 @@ export default function AdminPanel() {
               onSelectedRoomsChange={setSelectedRooms}
               onPhotosUpload={handleRoomPhotosUpload}
             />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <SettingsPanel />
           </TabsContent>
         </Tabs>
 
