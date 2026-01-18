@@ -1,33 +1,8 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Icon from '@/components/ui/icon';
-
-interface Room {
-  id: string;
-  number: string;
-  type: string;
-  area: number;
-  rooms: number;
-  capacity: number;
-  price: number;
-  available: boolean;
-  position: { x: number; y: number; width: number; height: number };
-  views: string[];
-  amenities: string[];
-  bedTypes?: string[];
-  polygon?: { x: number; y: number }[];
-}
-
-interface Floor {
-  id: string;
-  number: string;
-  planImage: string;
-  rooms: Room[];
-}
+import { Room, Floor } from './floorplan/types';
+import FloorPlanToolbar from './floorplan/FloorPlanToolbar';
+import FloorPlanCanvas from './floorplan/FloorPlanCanvas';
 
 interface FloorPlanEditorProps {
   floors: Floor[];
@@ -81,6 +56,15 @@ export default function FloorPlanEditor({
     if (drawMode === 'polygon') {
       setPolygonPoints([...polygonPoints, { x, y }]);
     } else {
+      setDrawStart({ x, y });
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (drawMode === 'rectangle' && imageRef && isDrawing) {
+      const rect = imageRef.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
       setDrawStart({ x, y });
     }
   };
@@ -232,290 +216,56 @@ export default function FloorPlanEditor({
     setEditPolygonPoints(newPoints);
   };
 
+  const handleToggleDrawing = () => {
+    setIsDrawing(!isDrawing);
+    setPolygonPoints([]);
+  };
+
   const currentFloorData = floors.find(f => f.id === currentFloor);
   const editingRoom = editingBoundsId ? currentFloorData?.rooms.find(r => r.id === editingBoundsId) : null;
 
   return (
     <Card className="p-6">
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="floor-upload">Загрузить план этажа</Label>
-            <Input
-              id="floor-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="cursor-pointer"
-            />
-          </div>
-
-          {floors.length > 0 && (
-            <>
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="floor-select">Выбрать этаж</Label>
-                <Select value={currentFloor} onValueChange={onCurrentFloorChange}>
-                  <SelectTrigger id="floor-select">
-                    <SelectValue placeholder="Выберите этаж" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {floors.map(floor => (
-                      <SelectItem key={floor.id} value={floor.id}>
-                        Этаж {floor.number}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {currentFloorData && (
-                <Button
-                  onClick={() => onFloorDelete(currentFloor)}
-                  variant="destructive"
-                  size="lg"
-                >
-                  <Icon name="Trash2" className="mr-2" />
-                  Удалить этаж
-                </Button>
-              )}
-            </>
-          )}
-
-          {currentFloorData && !editingBoundsId && (
-            <div className="flex gap-2">
-              <Button
-                onClick={() => {
-                  setIsDrawing(!isDrawing);
-                  setPolygonPoints([]);
-                }}
-                variant={isDrawing ? 'default' : 'outline'}
-                size="lg"
-              >
-                <Icon name={isDrawing ? 'Check' : 'PenTool'} className="mr-2" />
-                {isDrawing ? 'Завершить разметку' : 'Начать разметку'}
-              </Button>
-              {isDrawing && (
-                <Select value={drawMode} onValueChange={(v) => setDrawMode(v as 'rectangle' | 'polygon')}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rectangle">
-                      <div className="flex items-center gap-2">
-                        <Icon name="Square" size={16} />
-                        Прямоугольник
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="polygon">
-                      <div className="flex items-center gap-2">
-                        <Icon name="Pentagon" size={16} />
-                        Произвольная форма
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          )}
-          
-          {editingBoundsId && (
-            <div className="bg-secondary/20 px-4 py-2 rounded-lg border border-secondary">
-              <p className="text-sm font-medium">
-                <Icon name="Move" className="inline mr-2" size={16} />
-                Редактирование границ: перетаскивайте точки для изменения формы
-              </p>
-            </div>
-          )}
-        </div>
+        <FloorPlanToolbar
+          floors={floors}
+          currentFloor={currentFloor}
+          currentFloorData={currentFloorData}
+          isDrawing={isDrawing}
+          drawMode={drawMode}
+          editingBoundsId={editingBoundsId}
+          onFileChange={handleFileChange}
+          onCurrentFloorChange={onCurrentFloorChange}
+          onFloorDelete={onFloorDelete}
+          onToggleDrawing={handleToggleDrawing}
+          onDrawModeChange={setDrawMode}
+        />
 
         {currentFloorData && (
-          <div>
-            {!editingBoundsId && (
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-muted-foreground">
-                  {isDrawing 
-                    ? drawMode === 'polygon'
-                      ? 'Кликайте на план для создания точек контура. Минимум 3 точки.'
-                      : 'Кликните и перетащите мышью для создания прямоугольной зоны номера'
-                    : 'Нажмите "Начать разметку" для добавления номеров'}
-                </p>
-                {isDrawing && drawMode === 'polygon' && polygonPoints.length > 0 && (
-                  <div className="flex gap-2">
-                    <Button onClick={completePolygon} size="sm" variant="default">
-                      <Icon name="Check" size={16} className="mr-1" />
-                      Завершить ({polygonPoints.length} точек)
-                    </Button>
-                    <Button onClick={cancelPolygon} size="sm" variant="outline">
-                      <Icon name="X" size={16} className="mr-1" />
-                      Отмена
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            <div
-              ref={setImageRef}
-              className="relative w-full aspect-[3/2] bg-background rounded-xl overflow-hidden border-2 border-border"
-              onMouseDown={drawMode === 'rectangle' ? (e) => {
-                if (!imageRef || !isDrawing) return;
-                const rect = imageRef.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-                setDrawStart({ x, y });
-              } : undefined}
-              onMouseUp={handleMouseUp}
-              onClick={drawMode === 'polygon' ? handleClick : undefined}
-            >
-              <img
-                src={currentFloorData.planImage}
-                alt="План этажа"
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              />
-
-              {currentFloorData.rooms.map(room => (
-                <div
-                  key={room.id}
-                  className="absolute group cursor-pointer"
-                  style={{
-                    left: `${room.position.x}%`,
-                    top: `${room.position.y}%`,
-                    width: `${room.position.width}%`,
-                    height: `${room.position.height}%`
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRoomEdit(room);
-                  }}
-                >
-                  {room.polygon ? (
-                    <svg
-                      className="absolute inset-0 w-full h-full pointer-events-none"
-                      viewBox="0 0 100 100"
-                      preserveAspectRatio="none"
-                    >
-                      <polygon
-                        points={room.polygon.map(p => 
-                          `${((p.x - room.position.x) / room.position.width) * 100},${((p.y - room.position.y) / room.position.height) * 100}`
-                        ).join(' ')}
-                        className="fill-primary/30 stroke-primary stroke-[2]"
-                      />
-                    </svg>
-                  ) : (
-                    <div className="w-full h-full bg-primary/30 border-2 border-primary rounded-lg" />
-                  )}
-                  
-                  <div className="absolute inset-0 flex items-center justify-center hover:bg-primary/10 transition-colors">
-                    <span className="text-lg font-bold text-white drop-shadow-lg">
-                      {room.number}
-                    </span>
-                  </div>
-
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 pointer-events-auto">
-                    <Button
-                      size="icon"
-                      variant="default"
-                      className="h-8 w-8 shadow-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRoomEdit(room);
-                      }}
-                    >
-                      <Icon name="Edit" size={16} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="h-8 w-8 shadow-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditingBounds(room);
-                      }}
-                    >
-                      <Icon name="Move" size={16} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="h-8 w-8 shadow-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRoomDelete(room.id);
-                      }}
-                    >
-                      <Icon name="Trash2" size={16} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-
-              {isDrawing && drawMode === 'polygon' && polygonPoints.length > 0 && (
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                >
-                  <polyline
-                    points={polygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
-                    className="fill-none stroke-primary stroke-[0.5]"
-                  />
-                  {polygonPoints.map((point, i) => (
-                    <circle
-                      key={i}
-                      cx={point.x}
-                      cy={point.y}
-                      r="0.8"
-                      className="fill-primary"
-                    />
-                  ))}
-                </svg>
-              )}
-
-              {editingBoundsId && editingRoom?.polygon && editPolygonPoints.length > 0 && (
-                <>
-                  <div
-                    className="absolute inset-0"
-                    onMouseMove={handlePointDrag}
-                    onMouseUp={() => setDraggedPointIndex(null)}
-                  >
-                    <svg
-                      className="absolute inset-0 w-full h-full pointer-events-none"
-                      viewBox="0 0 100 100"
-                      preserveAspectRatio="none"
-                    >
-                      <polygon
-                        points={editPolygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
-                        className="fill-secondary/40 stroke-secondary stroke-[0.5]"
-                      />
-                      {editPolygonPoints.map((point, i) => (
-                        <circle
-                          key={i}
-                          cx={point.x}
-                          cy={point.y}
-                          r="1.2"
-                          className="fill-secondary stroke-white stroke-[0.3] cursor-move"
-                          style={{ pointerEvents: 'auto' }}
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            setDraggedPointIndex(i);
-                          }}
-                        />
-                      ))}
-                    </svg>
-                  </div>
-                  <div className="absolute top-4 right-4 flex gap-2 z-10">
-                    <Button onClick={saveEditedBounds} size="sm" variant="default">
-                      <Icon name="Check" size={16} className="mr-1" />
-                      Сохранить
-                    </Button>
-                    <Button onClick={cancelEditingBounds} size="sm" variant="outline">
-                      <Icon name="X" size={16} className="mr-1" />
-                      Отмена
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          <FloorPlanCanvas
+            currentFloorData={currentFloorData}
+            isDrawing={isDrawing}
+            drawMode={drawMode}
+            polygonPoints={polygonPoints}
+            editingBoundsId={editingBoundsId}
+            editingRoom={editingRoom}
+            editPolygonPoints={editPolygonPoints}
+            imageRef={imageRef}
+            onImageRefSet={setImageRef}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onClick={drawMode === 'polygon' ? handleClick : () => {}}
+            onRoomEdit={onRoomEdit}
+            onRoomDelete={onRoomDelete}
+            onBoundsEdit={startEditingBounds}
+            onCompletePolygon={completePolygon}
+            onCancelPolygon={cancelPolygon}
+            onSaveEditedBounds={saveEditedBounds}
+            onCancelEditingBounds={cancelEditingBounds}
+            onPointDrag={handlePointDrag}
+            onPointMouseDown={setDraggedPointIndex}
+            onPointMouseUp={() => setDraggedPointIndex(null)}
+          />
         )}
       </div>
     </Card>

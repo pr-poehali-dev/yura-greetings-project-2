@@ -4,29 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-
-interface Room {
-  id: string;
-  number: string;
-  type: string;
-  area: number;
-  rooms: number;
-  capacity: number;
-  price: number;
-  available: boolean;
-  position: { x: number; y: number; width: number; height: number };
-  views: string[];
-  amenities: string[];
-  bedTypes?: string[];
-  polygon?: { x: number; y: number }[];
-}
-
-interface Floor {
-  id: string;
-  number: string;
-  planImage: string;
-  rooms: Room[];
-}
+import { Room, Floor } from './floorplan/types';
 
 interface RoomPhotoManagerProps {
   floors: Floor[];

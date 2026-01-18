@@ -6,29 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import FloorPlanEditor from '@/components/admin/FloorPlanEditor';
 import RoomPhotoManager from '@/components/admin/RoomPhotoManager';
 import RoomEditDialog from '@/components/admin/RoomEditDialog';
-
-interface Room {
-  id: string;
-  number: string;
-  type: string;
-  area: number;
-  rooms: number;
-  capacity: number;
-  price: number;
-  available: boolean;
-  position: { x: number; y: number; width: number; height: number };
-  views: string[];
-  amenities: string[];
-  bedTypes?: string[];
-  polygon?: { x: number; y: number }[];
-}
-
-interface Floor {
-  id: string;
-  number: string;
-  planImage: string;
-  rooms: Room[];
-}
+import { Room, Floor } from '@/components/admin/floorplan/types';
 
 const STORAGE_KEY = 'hotel-admin-floors';
 

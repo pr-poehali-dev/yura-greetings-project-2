@@ -6,22 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-
-interface Room {
-  id: string;
-  number: string;
-  type: string;
-  area: number;
-  rooms: number;
-  capacity: number;
-  price: number;
-  available: boolean;
-  position: { x: number; y: number; width: number; height: number };
-  views: string[];
-  amenities: string[];
-  bedTypes?: string[];
-  polygon?: { x: number; y: number }[];
-}
+import { Room } from './floorplan/types';
 
 interface RoomEditDialogProps {
   room: Room | null;
