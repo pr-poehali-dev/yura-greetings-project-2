@@ -61,14 +61,8 @@ export default function RoomSelector() {
           </div>
           <h2 className="text-2xl font-bold">Планы этажей не загружены</h2>
           <p className="text-muted-foreground">
-            Администратор еще не добавил планы этажей. Пожалуйста, зайдите в админ-панель и загрузите планировку здания.
+            Администратор еще не добавил планы этажей. Скоро здесь появится интерактивная планировка.
           </p>
-          <Button asChild className="mt-4">
-            <a href="/admin">
-              <Icon name="Settings" className="mr-2" size={16} />
-              Перейти в админ-панель
-            </a>
-          </Button>
         </Card>
       </div>
     );
