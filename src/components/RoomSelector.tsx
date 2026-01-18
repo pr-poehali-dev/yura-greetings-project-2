@@ -50,7 +50,29 @@ export default function RoomSelector() {
   }, []);
 
   const apartmentRooms = currentFloor?.rooms || [];
-  const floorPlanImage = currentFloor?.planImage || 'https://cdn.poehali.dev/files/этаж 1.jpg';
+  const floorPlanImage = currentFloor?.planImage;
+
+  if (!currentFloor || floors.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted p-4 md:p-6 flex items-center justify-center">
+        <Card className="p-8 max-w-md text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
+            <Icon name="Info" size={32} className="text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold">Планы этажей не загружены</h2>
+          <p className="text-muted-foreground">
+            Администратор еще не добавил планы этажей. Пожалуйста, зайдите в админ-панель и загрузите планировку здания.
+          </p>
+          <Button asChild className="mt-4">
+            <a href="/admin">
+              <Icon name="Settings" className="mr-2" size={16} />
+              Перейти в админ-панель
+            </a>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted p-4 md:p-6">
