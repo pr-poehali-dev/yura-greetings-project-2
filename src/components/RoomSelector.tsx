@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,52 +17,40 @@ interface Room {
   position: { x: number; y: number; width: number; height: number };
   views: string[];
   amenities: string[];
+  bedTypes?: string[];
+  polygon?: { x: number; y: number }[];
 }
 
-const apartmentRooms: Room[] = [
-  { id: '1', number: '1', type: 'Стандарт с видом на море', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
-    position: { x: 3, y: 52, width: 30, height: 43 }, 
-    views: [
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/3b8d131a-6a7a-4644-9b7b-509360e96ac1.jpg',
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/e3b5222f-4fe9-48eb-bbfa-677f5702338f.jpg'
-    ], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона', 'Вид на море'] },
-  
-  { id: '2', number: '2', type: 'Стандарт с видом на сад', area: 30, rooms: 1, capacity: 2, price: 6000, available: false, 
-    position: { x: 3, y: 5, width: 30, height: 43 }, 
-    views: [
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/65f83656-3536-4802-bb27-c11994f9532a.jpg',
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/735f6a9f-44f1-4ceb-b814-7940e31be2e3.jpg'
-    ], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Вид на сад'] },
-  
-  { id: '3', number: '3', type: 'Комфорт (без окон)', area: 38, rooms: 1, capacity: 3, price: 7500, available: true, 
-    position: { x: 37, y: 5, width: 26, height: 43 }, 
-    views: [], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Мини-бар', 'Увеличенная площадь', 'Дополнительная вентиляция'] },
-  
-  { id: '4', number: '4', type: 'Стандарт с видом на сад', area: 31, rooms: 1, capacity: 2, price: 6200, available: true, 
-    position: { x: 67, y: 5, width: 30, height: 43 }, 
-    views: [
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/65f83656-3536-4802-bb27-c11994f9532a.jpg',
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/735f6a9f-44f1-4ceb-b814-7940e31be2e3.jpg'
-    ], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Вид на сад'] },
-  
-  { id: '5', number: '5', type: 'Стандарт с видом на море', area: 32, rooms: 1, capacity: 2, price: 6500, available: true, 
-    position: { x: 67, y: 52, width: 30, height: 43 }, 
-    views: [
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/3b8d131a-6a7a-4644-9b7b-509360e96ac1.jpg',
-      'https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/e3b5222f-4fe9-48eb-bbfa-677f5702338f.jpg'
-    ], 
-    amenities: ['Ванная комната', 'Wi-Fi', 'Кондиционер', 'Телевизор', 'Рабочая зона', 'Вид на море'] }
-];
+interface Floor {
+  id: string;
+  number: string;
+  planImage: string;
+  rooms: Room[];
+}
+
+const STORAGE_KEY = 'hotel-admin-floors';
 
 export default function RoomSelector() {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [floors, setFloors] = useState<Floor[]>([]);
+  const [currentFloor, setCurrentFloor] = useState<Floor | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const loadedFloors: Floor[] = JSON.parse(saved);
+      setFloors(loadedFloors);
+      if (loadedFloors.length > 0) {
+        setCurrentFloor(loadedFloors[0]);
+      }
+    }
+  }, []);
+
+  const apartmentRooms = currentFloor?.rooms || [];
+  const floorPlanImage = currentFloor?.planImage || 'https://cdn.poehali.dev/files/этаж 1.jpg';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted p-4 md:p-6">
@@ -77,63 +65,95 @@ export default function RoomSelector() {
         <Card className="p-4 md:p-8 bg-card/50 backdrop-blur-sm border-2 border-primary/20 shadow-2xl">
           <div className="relative w-full aspect-[3/2] bg-background rounded-xl overflow-hidden">
             <img 
-              src="https://cdn.poehali.dev/files/этаж 1.jpg" 
+              src={floorPlanImage} 
               alt="План этажа"
               className="absolute inset-0 w-full h-full object-contain"
             />
             
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-background/90 backdrop-blur px-4 py-2 rounded-full shadow-lg z-30">
               <Icon name="Layers" size={18} className="text-primary" />
-              <span className="font-semibold">Типовой этаж</span>
+              <span className="font-semibold">{currentFloor ? `Этаж ${currentFloor.number}` : 'План этажа'}</span>
             </div>
 
-            {apartmentRooms.map(room => (
-              <div
-                key={room.id}
-                className={`absolute cursor-pointer transition-all duration-200 group z-10`}
-                style={{
-                  left: `${room.position.x}%`,
-                  top: `${room.position.y}%`,
-                  width: `${room.position.width}%`,
-                  height: `${room.position.height}%`
-                }}
-                onMouseEnter={() => setHoveredRoom(room.id)}
-                onMouseLeave={() => setHoveredRoom(null)}
-                onClick={() => {
-                  setSelectedRoom(room);
-                  setCurrentImageIndex(0);
-                }}
-              >
-                <div
-                  className={`w-full h-full rounded-lg transition-all duration-200 ${
-                    room.available
-                      ? 'hover:bg-primary/30 hover:ring-4 hover:ring-primary/50 hover:shadow-2xl hover:shadow-primary/50'
-                      : 'hover:bg-destructive/30 hover:ring-4 hover:ring-destructive/50 cursor-not-allowed'
-                  }`}
-                />
-
-                {hoveredRoom === room.id && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-background/95 backdrop-blur-sm border-2 border-primary/50 rounded-lg p-3 shadow-2xl w-56 animate-scale-in pointer-events-none z-50">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="text-base font-bold">№{room.number}</p>
-                        <p className="text-xs text-muted-foreground">{room.type} • {room.rooms}-комн</p>
-                      </div>
-                      {!room.available && (
-                        <Badge variant="destructive" className="text-xs">
-                          Занят
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Icon name="Maximize2" size={14} className="text-primary" />
-                      <span className="text-xs">{room.area} м²</span>
-                    </div>
-                    <p className="text-primary font-bold mt-2 text-lg">{room.price.toLocaleString()} ₽/сутки</p>
-                  </div>
-                )}
+            {floors.length > 1 && (
+              <div className="absolute top-4 right-4 flex gap-2 z-30">
+                {floors.map(floor => (
+                  <Button
+                    key={floor.id}
+                    variant={currentFloor?.id === floor.id ? 'default' : 'outline'}
+                    size="sm"
+                    className="bg-background/90 backdrop-blur"
+                    onClick={() => setCurrentFloor(floor)}
+                  >
+                    Этаж {floor.number}
+                  </Button>
+                ))}
               </div>
-            ))}
+            )}
+
+            {apartmentRooms.map(room => {
+              const hasPolygon = room.polygon && room.polygon.length > 0;
+              const polygonPoints = hasPolygon 
+                ? room.polygon!.map(p => `${p.x}%,${p.y}%`).join(' ')
+                : '';
+              
+              return (
+                <div
+                  key={room.id}
+                  className={`absolute cursor-pointer transition-all duration-200 group z-10 ${!hasPolygon ? 'rounded-lg' : ''}`}
+                  style={hasPolygon ? {
+                    clipPath: `polygon(${polygonPoints})`
+                  } : {
+                    left: `${room.position.x}%`,
+                    top: `${room.position.y}%`,
+                    width: `${room.position.width}%`,
+                    height: `${room.position.height}%`
+                  }}
+                  onMouseEnter={() => setHoveredRoom(room.id)}
+                  onMouseLeave={() => setHoveredRoom(null)}
+                  onClick={() => {
+                    setSelectedRoom(room);
+                    setCurrentImageIndex(0);
+                  }}
+                >
+                  <div
+                    className={`w-full h-full transition-all duration-200 ${!hasPolygon ? 'rounded-lg' : ''} ${
+                      room.available
+                        ? 'hover:bg-primary/30 hover:ring-4 hover:ring-primary/50 hover:shadow-2xl hover:shadow-primary/50'
+                        : 'hover:bg-destructive/30 hover:ring-4 hover:ring-destructive/50 cursor-not-allowed'
+                    }`}
+                    style={hasPolygon ? {
+                      position: 'fixed',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      clipPath: `polygon(${polygonPoints})`
+                    } : {}}
+                  />
+
+                  {hoveredRoom === room.id && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-background/95 backdrop-blur-sm border-2 border-primary/50 rounded-lg p-3 shadow-2xl w-56 animate-scale-in pointer-events-none z-50">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="text-base font-bold">№{room.number}</p>
+                          <p className="text-xs text-muted-foreground">{room.type} • {room.rooms}-комн</p>
+                        </div>
+                        {!room.available && (
+                          <Badge variant="destructive" className="text-xs">
+                            Занят
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Icon name="Maximize2" size={14} className="text-primary" />
+                        <span className="text-xs">{room.area} м²</span>
+                      </div>
+                      <p className="text-primary font-bold mt-2 text-lg">{room.price.toLocaleString()} ₽/сутки</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur px-4 py-3 rounded-lg shadow-lg z-30 border border-primary/20">
               <p className="text-xs text-muted-foreground mb-2">Наведите курсор на номер</p>
