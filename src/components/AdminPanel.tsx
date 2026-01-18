@@ -41,6 +41,7 @@ export default function AdminPanel() {
   const [currentFloor, setCurrentFloor] = useState<string>('');
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [editingBounds, setEditingBounds] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(floors));
@@ -131,6 +132,26 @@ export default function AdminPanel() {
 
   const handleRoomEdit = (room: Room) => {
     setEditingRoom(room);
+  };
+
+  const handleBoundsEdit = (roomId: string) => {
+    setEditingBounds(roomId);
+  };
+
+  const handleBoundsSave = (roomId: string, newBounds: { position: { x: number; y: number; width: number; height: number }; polygon?: { x: number; y: number }[] }) => {
+    setFloors(floors.map(f => ({
+      ...f,
+      rooms: f.rooms.map(r => 
+        r.id === roomId
+          ? { ...r, ...newBounds }
+          : r
+      )
+    })));
+    setEditingBounds(null);
+    toast({
+      title: 'Границы обновлены',
+      description: 'Новые границы номера сохранены',
+    });
   };
 
   const handleRoomSave = (roomId: string, updates: Partial<Room>) => {
@@ -257,6 +278,10 @@ export default function AdminPanel() {
               onRoomDelete={handleRoomDelete}
               onFloorUpload={handleFloorPlanUpload}
               onFloorDelete={handleFloorDelete}
+              editingBoundsId={editingBounds}
+              onBoundsEdit={handleBoundsEdit}
+              onBoundsSave={handleBoundsSave}
+              onBoundsCancel={() => setEditingBounds(null)}
             />
           </TabsContent>
 
