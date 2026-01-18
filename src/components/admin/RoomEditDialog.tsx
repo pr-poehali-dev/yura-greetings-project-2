@@ -19,6 +19,7 @@ interface Room {
   position: { x: number; y: number; width: number; height: number };
   views: string[];
   amenities: string[];
+  bedTypes?: string[];
 }
 
 interface RoomEditDialogProps {
@@ -29,6 +30,7 @@ interface RoomEditDialogProps {
 
 export default function RoomEditDialog({ room, onClose, onSave }: RoomEditDialogProps) {
   const [formData, setFormData] = useState<Partial<Room>>({});
+  const [customBedType, setCustomBedType] = useState('');
 
   useEffect(() => {
     if (room) {
@@ -40,7 +42,8 @@ export default function RoomEditDialog({ room, onClose, onSave }: RoomEditDialog
         capacity: room.capacity,
         price: room.price,
         available: room.available,
-        amenities: room.amenities
+        amenities: room.amenities,
+        bedTypes: room.bedTypes || []
       });
     }
   }, [room]);
@@ -55,6 +58,23 @@ export default function RoomEditDialog({ room, onClose, onSave }: RoomEditDialog
   const updateAmenities = (amenitiesText: string) => {
     const amenitiesArray = amenitiesText.split(',').map(a => a.trim()).filter(a => a);
     setFormData({ ...formData, amenities: amenitiesArray });
+  };
+
+  const addBedType = (bedType: string) => {
+    const currentBeds = formData.bedTypes || [];
+    setFormData({ ...formData, bedTypes: [...currentBeds, bedType] });
+  };
+
+  const removeBedType = (index: number) => {
+    const currentBeds = formData.bedTypes || [];
+    setFormData({ ...formData, bedTypes: currentBeds.filter((_, i) => i !== index) });
+  };
+
+  const addCustomBedType = () => {
+    if (customBedType.trim()) {
+      addBedType(customBedType.trim());
+      setCustomBedType('');
+    }
   };
 
   return (
@@ -132,15 +152,69 @@ export default function RoomEditDialog({ room, onClose, onSave }: RoomEditDialog
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="room-price">Цена (₽/сутки)</Label>
-                <Input
-                  id="room-price"
-                  type="number"
-                  value={formData.price || ''}
-                  onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                  placeholder="6000"
-                />
+              <div className="space-y-2 md:col-span-2">
+                <Label>Виды спальных мест</Label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addBedType('Две односпальные кровати')}
+                  >
+                    <Icon name="Plus" size={16} className="mr-1" />
+                    Две односпальные
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addBedType('Одна двуспальная кровать')}
+                  >
+                    <Icon name="Plus" size={16} className="mr-1" />
+                    Одна двуспальная
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addBedType('Двуспальная кровать King Size')}
+                  >
+                    <Icon name="Plus" size={16} className="mr-1" />
+                    King Size
+                  </Button>
+                </div>
+                <div className="flex gap-2 mb-3">
+                  <Input
+                    placeholder="Добавить свой вариант"
+                    value={customBedType}
+                    onChange={(e) => setCustomBedType(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomBedType())}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addCustomBedType}
+                  >
+                    <Icon name="Plus" size={20} />
+                  </Button>
+                </div>
+                {formData.bedTypes && formData.bedTypes.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.bedTypes.map((bed, index) => (
+                      <div key={index} className="flex items-center justify-between bg-muted p-3 rounded-lg">
+                        <span className="text-sm">{bed}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeBedType(index)}
+                        >
+                          <Icon name="X" size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -155,7 +229,7 @@ export default function RoomEditDialog({ room, onClose, onSave }: RoomEditDialog
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="true">Доступен</SelectItem>
-                  <SelectItem value="false">Занят</SelectItem>
+                  <SelectItem value="false">Недоступен для бронирования</SelectItem>
                 </SelectContent>
               </Select>
             </div>

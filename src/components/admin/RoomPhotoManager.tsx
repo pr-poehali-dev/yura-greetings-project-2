@@ -17,6 +17,7 @@ interface Room {
   position: { x: number; y: number; width: number; height: number };
   views: string[];
   amenities: string[];
+  bedTypes?: string[];
 }
 
 interface Floor {
