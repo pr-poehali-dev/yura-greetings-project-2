@@ -70,7 +70,7 @@ const Rooms = () => {
             <Icon name="ArrowLeft" className="mr-2" size={16} />
             Назад
           </Button>
-          <h1 className="text-xl font-bold">STATUS HOTEL</h1>
+          <h1 className="text-xl font-bold">IVAN HOTEL</h1>
           <div className="w-24" />
         </div>
       </header>
