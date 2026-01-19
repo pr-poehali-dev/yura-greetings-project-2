@@ -69,7 +69,7 @@ const Hotel = () => {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-background/95 backdrop-blur-sm shadow-md' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-primary">
-            IVAN HOTEL
+            
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">
@@ -98,7 +98,7 @@ const Hotel = () => {
         />
         
         <div className="relative z-10 text-center text-white space-y-6 px-4">
-          <h1 className="text-5xl md:text-7xl font-bold">IVAN HOTEL</h1>
+          <h1 className="text-5xl md:text-7xl font-bold"></h1>
           <p className="text-xl md:text-2xl text-white/90">Ваш идеальный отдых в центре города</p>
           <Button size="lg" className="text-lg px-8" onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}>
             <Icon name="Calendar" className="mr-2" />
