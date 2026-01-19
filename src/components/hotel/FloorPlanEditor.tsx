@@ -1,0 +1,187 @@
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import Icon from '@/components/ui/icon';
+
+interface Room {
+  id: number;
+  room_number: string;
+  floor_id: number;
+  position_x: number;
+  position_y: number;
+  category: string;
+  price: number;
+  status: string;
+}
+
+interface Floor {
+  id: number;
+  floor_number: number;
+  plan_image_url: string | null;
+  rooms: Room[];
+}
+
+interface FloorPlanEditorProps {
+  floors: Floor[];
+  currentFloor: number;
+  isDrawing: boolean;
+  loading: boolean;
+  newRoom: Partial<Room>;
+  onFloorChange: (floorId: number) => void;
+  onImageUpload: (floorId: number, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onToggleDrawing: () => void;
+  onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onRoomClick: (room: Room, e: React.MouseEvent) => void;
+  onNewRoomChange: (room: Partial<Room>) => void;
+}
+
+const FloorPlanEditor = ({
+  floors,
+  currentFloor,
+  isDrawing,
+  loading,
+  newRoom,
+  onFloorChange,
+  onImageUpload,
+  onToggleDrawing,
+  onCanvasClick,
+  onRoomClick,
+  onNewRoomChange
+}: FloorPlanEditorProps) => {
+  const currentFloorData = floors.find(f => f.id === currentFloor);
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Схема этажей</h2>
+        <div className="flex gap-2">
+          {floors.map(floor => (
+            <Button
+              key={floor.id}
+              variant={currentFloor === floor.id ? 'default' : 'outline'}
+              onClick={() => onFloorChange(floor.id)}
+            >
+              {floor.floor_number} этаж
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <label className="block mb-2 text-sm font-medium">Загрузить схему этажа</label>
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={(e) => onImageUpload(currentFloor, e)}
+          disabled={loading}
+        />
+      </div>
+
+      {currentFloorData?.plan_image_url && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Настройка новых номеров</h3>
+            <Button
+              variant={isDrawing ? 'destructive' : 'default'}
+              onClick={onToggleDrawing}
+              disabled={loading}
+            >
+              <Icon name={isDrawing ? 'X' : 'Plus'} size={16} className="mr-2" />
+              {isDrawing ? 'Отменить' : 'Добавить номер'}
+            </Button>
+          </div>
+
+          {isDrawing && (
+            <div className="grid grid-cols-3 gap-4 mb-4 p-4 bg-muted rounded-lg">
+              <div>
+                <label className="block text-sm mb-1">Категория</label>
+                <Input
+                  value={newRoom.category}
+                  onChange={(e) => onNewRoomChange({ ...newRoom, category: e.target.value })}
+                  placeholder="Стандарт"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Цена за ночь</label>
+                <Input
+                  type="number"
+                  value={newRoom.price}
+                  onChange={(e) => onNewRoomChange({ ...newRoom, price: Number(e.target.value) })}
+                  placeholder="3500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Статус</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={newRoom.status}
+                  onChange={(e) => onNewRoomChange({ ...newRoom, status: e.target.value })}
+                >
+                  <option value="available">Доступен</option>
+                  <option value="occupied">Занят</option>
+                  <option value="maintenance">Ремонт</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div
+            className="relative border-2 border-dashed rounded-lg overflow-hidden"
+            style={{ minHeight: '600px', cursor: isDrawing ? 'crosshair' : 'default' }}
+            onClick={onCanvasClick}
+          >
+            <img
+              src={currentFloorData.plan_image_url}
+              alt={`План ${currentFloorData.floor_number} этажа`}
+              className="w-full h-auto"
+            />
+            {currentFloorData.rooms.map(room => (
+              <div
+                key={room.id}
+                className="absolute w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer transition-transform hover:scale-110"
+                style={{
+                  left: `${room.position_x}px`,
+                  top: `${room.position_y}px`,
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor:
+                    room.status === 'available' ? '#22c55e' :
+                    room.status === 'occupied' ? '#ef4444' :
+                    '#f59e0b',
+                  color: 'white'
+                }}
+                onClick={(e) => onRoomClick(room, e)}
+                title={`${room.room_number} - ${room.category}`}
+              >
+                {room.room_number}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-green-500"></div>
+              <span>Доступен</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-red-500"></div>
+              <span>Занят</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-amber-500"></div>
+              <span>Ремонт</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!currentFloorData?.plan_image_url && (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Загрузите схему этажа для начала работы</p>
+        </div>
+      )}
+    </Card>
+  );
+};
+
+export default FloorPlanEditor;

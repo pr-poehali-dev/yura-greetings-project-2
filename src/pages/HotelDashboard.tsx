@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import * as hotelApi from '@/lib/hotelApi';
+import FloorPlanEditor from '@/components/hotel/FloorPlanEditor';
+import BookingsList from '@/components/hotel/BookingsList';
+import RoomEditModal from '@/components/hotel/RoomEditModal';
 
 interface Booking {
   id: number;
@@ -265,8 +266,6 @@ const HotelDashboard = () => {
     }
   };
 
-  const currentFloorData = floors.find(f => f.id === currentFloor);
-
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-50">
@@ -286,247 +285,52 @@ const HotelDashboard = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="floors" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="floors">Схемы этажей</TabsTrigger>
-            <TabsTrigger value="bookings">Бронирования</TabsTrigger>
+        <Tabs defaultValue="floors" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+            <TabsTrigger value="floors">
+              <Icon name="Building" size={16} className="mr-2" />
+              Этажи
+            </TabsTrigger>
+            <TabsTrigger value="bookings">
+              <Icon name="Calendar" size={16} className="mr-2" />
+              Бронирования
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="floors" className="space-y-6">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Управление этажами</h2>
-              
-              <div className="flex gap-2 mb-6">
-                {floors.map(floor => (
-                  <Button
-                    key={floor.id}
-                    variant={currentFloor === floor.id ? 'default' : 'outline'}
-                    onClick={() => setCurrentFloor(floor.id)}
-                    disabled={loading}
-                  >
-                    {floor.floor_number} этаж
-                  </Button>
-                ))}
-              </div>
-
-              {currentFloorData && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Загрузить схему {currentFloorData.floor_number} этажа
-                    </label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(currentFloor, e)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  {currentFloorData.plan_image_url && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <Button
-                          variant={isDrawing ? 'default' : 'outline'}
-                          onClick={() => setIsDrawing(!isDrawing)}
-                          disabled={loading}
-                        >
-                          <Icon name={isDrawing ? 'Check' : 'Plus'} size={16} className="mr-2" />
-                          {isDrawing ? 'Режим добавления (нажмите на схему)' : 'Добавить номер'}
-                        </Button>
-
-                        {isDrawing && (
-                          <div className="flex gap-2">
-                            <Input
-                              type="text"
-                              placeholder="Категория"
-                              value={newRoom.category}
-                              onChange={(e) => setNewRoom({ ...newRoom, category: e.target.value })}
-                              className="w-32"
-                            />
-                            <Input
-                              type="number"
-                              placeholder="Цена"
-                              value={newRoom.price}
-                              onChange={(e) => setNewRoom({ ...newRoom, price: Number(e.target.value) })}
-                              className="w-32"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <div
-                        className="relative border-2 border-dashed rounded-lg overflow-hidden"
-                        style={{ cursor: isDrawing ? 'crosshair' : 'default' }}
-                        onClick={handleCanvasClick}
-                      >
-                        <img
-                          src={currentFloorData.plan_image_url}
-                          alt={`План ${currentFloorData.floor_number} этажа`}
-                          className="w-full"
-                        />
-                        {currentFloorData.rooms.map(room => (
-                          <div
-                            key={room.id}
-                            className="absolute bg-blue-500/70 hover:bg-blue-600/70 border-2 border-blue-700 rounded cursor-pointer flex items-center justify-center text-white font-bold transition-colors"
-                            style={{
-                              left: room.position_x,
-                              top: room.position_y,
-                              width: 80,
-                              height: 60
-                            }}
-                            onClick={(e) => handleRoomClick(room, e)}
-                          >
-                            {room.room_number}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </Card>
+          <TabsContent value="floors">
+            <FloorPlanEditor
+              floors={floors}
+              currentFloor={currentFloor}
+              isDrawing={isDrawing}
+              loading={loading}
+              newRoom={newRoom}
+              onFloorChange={setCurrentFloor}
+              onImageUpload={handleImageUpload}
+              onToggleDrawing={() => setIsDrawing(!isDrawing)}
+              onCanvasClick={handleCanvasClick}
+              onRoomClick={handleRoomClick}
+              onNewRoomChange={setNewRoom}
+            />
           </TabsContent>
 
           <TabsContent value="bookings">
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Бронирования</h2>
-                <Button onClick={loadBookings} disabled={loading}>
-                  <Icon name="RefreshCw" size={16} className="mr-2" />
-                  Обновить
-                </Button>
-              </div>
-
-              {bookings.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Нет активных бронирований</p>
-              ) : (
-                <div className="space-y-4">
-                  {bookings.map(booking => (
-                    <Card key={booking.id} className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Icon name="User" size={16} />
-                            <span className="font-semibold">{booking.guest_name}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Icon name="Mail" size={14} />
-                            {booking.guest_email}
-                          </div>
-                          {booking.guest_phone && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Icon name="Phone" size={14} />
-                              {booking.guest_phone}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right space-y-1">
-                          <div className="font-semibold">
-                            Номер {booking.room_number} ({booking.floor_number} этаж)
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {booking.category}
-                          </div>
-                          <div className="text-sm font-medium">
-                            {booking.total_price} ₽
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 pt-4 border-t flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <span className="text-muted-foreground">Заезд:</span>{' '}
-                            <span className="font-medium">{new Date(booking.check_in).toLocaleDateString('ru-RU')}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Выезд:</span>{' '}
-                            <span className="font-medium">{new Date(booking.check_out).toLocaleDateString('ru-RU')}</span>
-                          </div>
-                        </div>
-                        <div>
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {booking.status === 'confirmed' ? 'Подтверждено' :
-                             booking.status === 'pending' ? 'Ожидает' : booking.status}
-                          </span>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </Card>
+            <BookingsList
+              bookings={bookings}
+              loading={loading}
+              onRefresh={loadBookings}
+            />
           </TabsContent>
         </Tabs>
       </div>
 
-      {selectedRoom && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedRoom(null)}>
-          <Card className="p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-4">Редактировать номер {selectedRoom.room_number}</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Номер комнаты</label>
-                <Input
-                  value={selectedRoom.room_number}
-                  onChange={(e) => setSelectedRoom({ ...selectedRoom, room_number: e.target.value })}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Категория</label>
-                <Input
-                  value={selectedRoom.category}
-                  onChange={(e) => setSelectedRoom({ ...selectedRoom, category: e.target.value })}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Цена за ночь</label>
-                <Input
-                  type="number"
-                  value={selectedRoom.price}
-                  onChange={(e) => setSelectedRoom({ ...selectedRoom, price: Number(e.target.value) })}
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Статус</label>
-                <select
-                  className="w-full px-3 py-2 border rounded-md"
-                  value={selectedRoom.status}
-                  onChange={(e) => setSelectedRoom({ ...selectedRoom, status: e.target.value })}
-                  disabled={loading}
-                >
-                  <option value="available">Доступен</option>
-                  <option value="occupied">Занят</option>
-                  <option value="maintenance">Ремонт</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setSelectedRoom(null)} disabled={loading}>
-                  Отмена
-                </Button>
-                <Button variant="destructive" onClick={() => handleDeleteRoom(selectedRoom.id)} disabled={loading}>
-                  Удалить
-                </Button>
-                <Button onClick={handleUpdateRoom} disabled={loading}>
-                  Сохранить
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      <RoomEditModal
+        selectedRoom={selectedRoom}
+        loading={loading}
+        onClose={() => setSelectedRoom(null)}
+        onUpdate={handleUpdateRoom}
+        onDelete={handleDeleteRoom}
+        onChange={setSelectedRoom}
+      />
     </div>
   );
 };
