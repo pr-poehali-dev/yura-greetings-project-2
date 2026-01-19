@@ -69,7 +69,7 @@ const Hotel = () => {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-background/95 backdrop-blur-sm shadow-md' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-primary">
-            STATUS HOTEL
+            IVAN HOTEL
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">
@@ -98,7 +98,7 @@ const Hotel = () => {
         />
         
         <div className="relative z-10 text-center text-white space-y-6 px-4">
-          <h1 className="text-5xl md:text-7xl font-bold">STATUS HOTEL</h1>
+          <h1 className="text-5xl md:text-7xl font-bold">IVAN HOTEL</h1>
           <p className="text-xl md:text-2xl text-white/90">Ваш идеальный отдых в центре города</p>
           <Button size="lg" className="text-lg px-8" onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}>
             <Icon name="Calendar" className="mr-2" />
@@ -243,7 +243,7 @@ const Hotel = () => {
             <div className="space-y-6">
               <h2 className="text-4xl font-bold">О нас</h2>
               <p className="text-lg text-muted-foreground">
-                STATUS HOTEL — это современный отель в самом центре города, где элегантность встречается с комфортом. 
+                IVAN HOTEL — это современный отель в самом центре города, где элегантность встречается с комфортом. 
                 Мы предлагаем нашим гостям незабываемый опыт проживания с первоклассным сервисом.
               </p>
               <p className="text-lg text-muted-foreground">
@@ -308,7 +308,7 @@ const Hotel = () => {
 
       <footer className="bg-card border-t py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; 2024 STATUS HOTEL. Все права защищены.</p>
+          <p>&copy; 2024 IVAN HOTEL. Все права защищены.</p>
         </div>
       </footer>
     </div>
