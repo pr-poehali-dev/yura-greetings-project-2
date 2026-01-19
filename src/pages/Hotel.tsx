@@ -288,19 +288,19 @@ const Hotel = () => {
             <Card className="p-6 text-center">
               <Icon name="MapPin" size={32} className="mx-auto mb-4 text-primary" />
               <h3 className="font-bold mb-2">Адрес</h3>
-              <p className="text-muted-foreground">г. Москва, ул. Центральная, д. 1</p>
+              <p className="text-muted-foreground"></p>
             </Card>
 
             <Card className="p-6 text-center">
               <Icon name="Phone" size={32} className="mx-auto mb-4 text-primary" />
               <h3 className="font-bold mb-2">Телефон</h3>
-              <p className="text-muted-foreground">+7 (495) 123-45-67</p>
+              <p className="text-muted-foreground"></p>
             </Card>
 
             <Card className="p-6 text-center">
               <Icon name="Mail" size={32} className="mx-auto mb-4 text-primary" />
               <h3 className="font-bold mb-2">Email</h3>
-              <p className="text-muted-foreground">info@statushotel.ru</p>
+              <p className="text-muted-foreground"></p>
             </Card>
           </div>
         </div>
