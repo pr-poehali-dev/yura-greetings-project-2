@@ -92,7 +92,7 @@ const Hotel = () => {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: 'url(https://cdn.poehali.dev/projects/e22df45d-2e7a-49eb-bbb7-4cd88aa61e87/files/d8fbf5ce-f852-4a87-a7ee-a1028ffffff3.jpg)',
+            backgroundImage: 'url(https://cdn.poehali.dev/files/chad_c2d41f550e6946c781061ca671e0b4a8.png)',
             filter: 'brightness(0.6)'
           }}
         />
