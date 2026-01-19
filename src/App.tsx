@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Hotel from "./pages/Hotel";
 import HotelAdmin from "./pages/HotelAdmin";
+import HotelDashboard from "./pages/HotelDashboard";
 import Rooms from "./pages/Rooms";
 import FloorPlan from "./pages/FloorPlan";
 import Payment from "./pages/Payment";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/hotel-admin" element={<HotelAdmin />} />
+          <Route path="/hotel/dashboard" element={<HotelDashboard />} />
           <Route path="/hotel" element={<Hotel />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/floorplan" element={<FloorPlan />} />
