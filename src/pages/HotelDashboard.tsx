@@ -30,6 +30,9 @@ interface Room {
   floor_id: number;
   position_x: number;
   position_y: number;
+  width?: number;
+  height?: number;
+  polygon?: Array<{x: number, y: number}>;
   category: string;
   price: number;
   status: string;
@@ -48,6 +51,8 @@ const HotelDashboard = () => {
   const [floors, setFloors] = useState<Floor[]>([]);
   const [currentFloor, setCurrentFloor] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<'rectangle' | 'polygon'>('rectangle');
+  const [polygonPoints, setPolygonPoints] = useState<Array<{x: number, y: number}>>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -215,6 +220,11 @@ const HotelDashboard = () => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    if (drawMode === 'polygon') {
+      setPolygonPoints([...polygonPoints, { x, y }]);
+      return;
+    }
+
     const roomNumber = prompt('Номер комнаты:');
     if (!roomNumber) return;
 
@@ -227,6 +237,8 @@ const HotelDashboard = () => {
         price: newRoom.price || 3500,
         position_x: x,
         position_y: y,
+        width: 60,
+        height: 40,
         status: newRoom.status || 'available'
       });
 
@@ -252,6 +264,57 @@ const HotelDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFinishPolygon = async () => {
+    if (polygonPoints.length < 3 || !currentFloor) return;
+
+    const roomNumber = prompt('Номер комнаты:');
+    if (!roomNumber) return;
+
+    const centerX = polygonPoints.reduce((sum, p) => sum + p.x, 0) / polygonPoints.length;
+    const centerY = polygonPoints.reduce((sum, p) => sum + p.y, 0) / polygonPoints.length;
+
+    try {
+      setLoading(true);
+      const newRoomData = await hotelApi.createRoom({
+        floor_id: currentFloor,
+        room_number: roomNumber,
+        category: newRoom.category || 'Стандарт',
+        price: newRoom.price || 3500,
+        position_x: centerX,
+        position_y: centerY,
+        polygon: polygonPoints,
+        status: newRoom.status || 'available'
+      });
+
+      setFloors(floors.map(floor =>
+        floor.id === currentFloor
+          ? { ...floor, rooms: [...floor.rooms, newRoomData] }
+          : floor
+      ));
+
+      setPolygonPoints([]);
+      setIsDrawing(false);
+
+      toast({
+        title: "Номер добавлен",
+        description: `Номер ${roomNumber} добавлен на схему`
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось добавить номер",
+        variant: "destructive"
+      });
+      console.error('Error creating room:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelPolygon = () => {
+    setPolygonPoints([]);
   };
 
   const handleRoomClick = (room: Room, e: React.MouseEvent) => {
@@ -365,14 +428,22 @@ const HotelDashboard = () => {
               floors={floors}
               currentFloor={currentFloor}
               isDrawing={isDrawing}
+              drawMode={drawMode}
+              polygonPoints={polygonPoints}
               loading={loading}
               newRoom={newRoom}
               onFloorChange={setCurrentFloor}
               onNewFloorUpload={handleNewFloorUpload}
               onDeleteFloor={handleDeleteFloor}
               onDuplicateFloor={handleDuplicateFloor}
-              onToggleDrawing={() => setIsDrawing(!isDrawing)}
+              onToggleDrawing={() => {
+                setIsDrawing(!isDrawing);
+                setPolygonPoints([]);
+              }}
+              onDrawModeChange={setDrawMode}
               onCanvasClick={handleCanvasClick}
+              onFinishPolygon={handleFinishPolygon}
+              onCancelPolygon={handleCancelPolygon}
               onRoomClick={handleRoomClick}
               onNewRoomChange={setNewRoom}
             />

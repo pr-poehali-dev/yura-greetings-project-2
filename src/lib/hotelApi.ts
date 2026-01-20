@@ -17,6 +17,9 @@ interface Room {
   price: number;
   position_x: number;
   position_y: number;
+  width?: number;
+  height?: number;
+  polygon?: Array<{x: number, y: number}>;
   status: string;
   created_at: string;
   updated_at: string;
@@ -129,6 +132,9 @@ export async function createRoom(room: {
   price: number;
   position_x: number;
   position_y: number;
+  width?: number;
+  height?: number;
+  polygon?: Array<{x: number, y: number}>;
   status?: string;
 }): Promise<Room> {
   const response = await fetch(API_URL, {
@@ -149,6 +155,9 @@ export async function updateRoom(room: {
   price: number;
   position_x: number;
   position_y: number;
+  width?: number;
+  height?: number;
+  polygon?: Array<{x: number, y: number}>;
   status: string;
 }): Promise<Room> {
   const response = await fetch(API_URL, {

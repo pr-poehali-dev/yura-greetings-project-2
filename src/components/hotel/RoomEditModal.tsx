@@ -8,6 +8,9 @@ interface Room {
   floor_id: number;
   position_x: number;
   position_y: number;
+  width?: number;
+  height?: number;
+  polygon?: Array<{x: number, y: number}>;
   category: string;
   price: number;
   status: string;

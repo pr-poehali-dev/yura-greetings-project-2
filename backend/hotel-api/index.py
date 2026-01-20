@@ -106,34 +106,52 @@ def handler(event: dict, context) -> dict:
                 else:
                     cur.execute('SELECT * FROM rooms ORDER BY floor_id, room_number')
                 rooms = cur.fetchall()
-                return success_response([dict(r) for r in rooms])
+                rooms_list = []
+                for r in rooms:
+                    room_dict = dict(r)
+                    if room_dict.get('polygon'):
+                        room_dict['polygon'] = json.loads(room_dict['polygon'])
+                    rooms_list.append(room_dict)
+                return success_response(rooms_list)
             
             elif method == 'POST':
                 data = json.loads(event.get('body', '{}'))
+                polygon_json = json.dumps(data.get('polygon')) if data.get('polygon') else None
                 cur.execute(
-                    '''INSERT INTO rooms (floor_id, room_number, category, price, position_x, position_y, status)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *''',
+                    '''INSERT INTO rooms (floor_id, room_number, category, price, position_x, position_y, 
+                       width, height, polygon, status)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *''',
                     (data['floor_id'], data['room_number'], data['category'], 
-                     data['price'], data['position_x'], data['position_y'], 
+                     data['price'], data['position_x'], data['position_y'],
+                     data.get('width'), data.get('height'), polygon_json,
                      data.get('status', 'available'))
                 )
                 conn.commit()
                 room = cur.fetchone()
-                return success_response(dict(room))
+                room_dict = dict(room)
+                if room_dict.get('polygon'):
+                    room_dict['polygon'] = json.loads(room_dict['polygon'])
+                return success_response(room_dict)
             
             elif method == 'PUT':
                 data = json.loads(event.get('body', '{}'))
                 room_id = data.get('id')
+                polygon_json = json.dumps(data.get('polygon')) if data.get('polygon') else None
                 cur.execute(
                     '''UPDATE rooms SET room_number = %s, category = %s, price = %s, 
-                       position_x = %s, position_y = %s, status = %s, updated_at = CURRENT_TIMESTAMP 
+                       position_x = %s, position_y = %s, width = %s, height = %s, polygon = %s,
+                       status = %s, updated_at = CURRENT_TIMESTAMP 
                        WHERE id = %s RETURNING *''',
                     (data['room_number'], data['category'], data['price'], 
-                     data['position_x'], data['position_y'], data['status'], room_id)
+                     data['position_x'], data['position_y'], data.get('width'), data.get('height'),
+                     polygon_json, data['status'], room_id)
                 )
                 conn.commit()
                 room = cur.fetchone()
-                return success_response(dict(room))
+                room_dict = dict(room)
+                if room_dict.get('polygon'):
+                    room_dict['polygon'] = json.loads(room_dict['polygon'])
+                return success_response(room_dict)
             
             elif method == 'DELETE':
                 room_id = headers.get('X-Room-Id')

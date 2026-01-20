@@ -9,6 +9,9 @@ interface Room {
   floor_id: number;
   position_x: number;
   position_y: number;
+  width?: number;
+  height?: number;
+  polygon?: Array<{x: number, y: number}>;
   category: string;
   price: number;
   status: string;
@@ -25,6 +28,8 @@ interface FloorPlanEditorProps {
   floors: Floor[];
   currentFloor: number | null;
   isDrawing: boolean;
+  drawMode: 'rectangle' | 'polygon';
+  polygonPoints: Array<{x: number, y: number}>;
   loading: boolean;
   newRoom: Partial<Room>;
   onFloorChange: (floorId: number) => void;
@@ -32,7 +37,10 @@ interface FloorPlanEditorProps {
   onDeleteFloor: (floorId: number) => void;
   onDuplicateFloor: (floorId: number) => void;
   onToggleDrawing: () => void;
+  onDrawModeChange: (mode: 'rectangle' | 'polygon') => void;
   onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onFinishPolygon: () => void;
+  onCancelPolygon: () => void;
   onRoomClick: (room: Room, e: React.MouseEvent) => void;
   onNewRoomChange: (room: Partial<Room>) => void;
 }
@@ -41,6 +49,8 @@ const FloorPlanEditor = ({
   floors,
   currentFloor,
   isDrawing,
+  drawMode,
+  polygonPoints,
   loading,
   newRoom,
   onFloorChange,
@@ -48,7 +58,10 @@ const FloorPlanEditor = ({
   onDeleteFloor,
   onDuplicateFloor,
   onToggleDrawing,
+  onDrawModeChange,
   onCanvasClick,
+  onFinishPolygon,
+  onCancelPolygon,
   onRoomClick,
   onNewRoomChange
 }: FloorPlanEditorProps) => {
@@ -133,35 +146,79 @@ const FloorPlanEditor = ({
           </div>
 
           {isDrawing && (
-            <div className="grid grid-cols-3 gap-4 mb-4 p-4 bg-muted rounded-lg">
-              <div>
-                <label className="block text-sm mb-1">Категория</label>
-                <Input
-                  value={newRoom.category}
-                  onChange={(e) => onNewRoomChange({ ...newRoom, category: e.target.value })}
-                  placeholder="Стандарт"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Цена за ночь</label>
-                <Input
-                  type="number"
-                  value={newRoom.price}
-                  onChange={(e) => onNewRoomChange({ ...newRoom, price: Number(e.target.value) })}
-                  placeholder="3500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Статус</label>
-                <select
-                  className="w-full px-3 py-2 border rounded-md"
-                  value={newRoom.status}
-                  onChange={(e) => onNewRoomChange({ ...newRoom, status: e.target.value })}
+            <div className="space-y-4 mb-4 p-4 bg-muted rounded-lg">
+              <div className="flex gap-2">
+                <Button
+                  variant={drawMode === 'rectangle' ? 'default' : 'outline'}
+                  onClick={() => onDrawModeChange('rectangle')}
+                  size="sm"
                 >
-                  <option value="available">Доступен</option>
-                  <option value="occupied">Занят</option>
-                  <option value="maintenance">Ремонт</option>
-                </select>
+                  <Icon name="Square" size={16} className="mr-2" />
+                  Прямоугольник
+                </Button>
+                <Button
+                  variant={drawMode === 'polygon' ? 'default' : 'outline'}
+                  onClick={() => onDrawModeChange('polygon')}
+                  size="sm"
+                >
+                  <Icon name="Pentagon" size={16} className="mr-2" />
+                  Произвольная форма
+                </Button>
+              </div>
+              
+              {drawMode === 'polygon' && polygonPoints.length > 0 && (
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm">Точек: {polygonPoints.length}</span>
+                  <Button
+                    variant="default"
+                    onClick={onFinishPolygon}
+                    size="sm"
+                    disabled={polygonPoints.length < 3}
+                  >
+                    <Icon name="Check" size={16} className="mr-2" />
+                    Завершить
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={onCancelPolygon}
+                    size="sm"
+                  >
+                    <Icon name="X" size={16} className="mr-2" />
+                    Отмена
+                  </Button>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm mb-1">Категория</label>
+                  <Input
+                    value={newRoom.category}
+                    onChange={(e) => onNewRoomChange({ ...newRoom, category: e.target.value })}
+                    placeholder="Стандарт"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Цена за ночь</label>
+                  <Input
+                    type="number"
+                    value={newRoom.price}
+                    onChange={(e) => onNewRoomChange({ ...newRoom, price: Number(e.target.value) })}
+                    placeholder="3500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Статус</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={newRoom.status}
+                    onChange={(e) => onNewRoomChange({ ...newRoom, status: e.target.value })}
+                  >
+                    <option value="available">Доступен</option>
+                    <option value="occupied">Занят</option>
+                    <option value="maintenance">Ремонт</option>
+                  </select>
+                </div>
               </div>
             </div>
           )}
@@ -177,26 +234,95 @@ const FloorPlanEditor = ({
               className="w-full h-auto pointer-events-none select-none"
               draggable="false"
             />
-            {currentFloorData.rooms.map(room => (
-              <div
-                key={room.id}
-                className="absolute w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer transition-transform hover:scale-110"
-                style={{
-                  left: `${room.position_x}px`,
-                  top: `${room.position_y}px`,
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor:
-                    room.status === 'available' ? '#22c55e' :
-                    room.status === 'occupied' ? '#ef4444' :
-                    '#f59e0b',
-                  color: 'white'
-                }}
-                onClick={(e) => onRoomClick(room, e)}
-                title={`${room.room_number} - ${room.category}`}
-              >
-                {room.room_number}
-              </div>
-            ))}
+            <svg className="absolute top-0 left-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+              {currentFloorData.rooms.map(room => {
+                const color = room.status === 'available' ? '#22c55e' :
+                             room.status === 'occupied' ? '#ef4444' : '#f59e0b';
+                
+                if (room.polygon && room.polygon.length > 0) {
+                  const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
+                  const centerX = room.polygon.reduce((sum, p) => sum + p.x, 0) / room.polygon.length;
+                  const centerY = room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length;
+                  
+                  return (
+                    <g key={room.id} style={{ cursor: 'pointer', pointerEvents: 'all' }} onClick={(e) => onRoomClick(room, e as any)}>
+                      <polygon
+                        points={points}
+                        fill={color}
+                        fillOpacity="0.4"
+                        stroke={color}
+                        strokeWidth="2"
+                        className="transition-opacity hover:opacity-75"
+                      />
+                      <text
+                        x={centerX}
+                        y={centerY}
+                        fill="white"
+                        fontSize="12"
+                        fontWeight="bold"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ pointerEvents: 'none', userSelect: 'none' }}
+                      >
+                        {room.room_number}
+                      </text>
+                    </g>
+                  );
+                }
+                
+                return null;
+              })}
+              
+              {drawMode === 'polygon' && polygonPoints.length > 0 && (
+                <>
+                  <polyline
+                    points={polygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth="2"
+                    strokeDasharray="5,5"
+                  />
+                  {polygonPoints.map((point, i) => (
+                    <circle
+                      key={i}
+                      cx={point.x}
+                      cy={point.y}
+                      r="4"
+                      fill="#3b82f6"
+                    />
+                  ))}
+                </>
+              )}
+            </svg>
+            
+            {currentFloorData.rooms.map(room => {
+              const color = room.status === 'available' ? '#22c55e' :
+                           room.status === 'occupied' ? '#ef4444' : '#f59e0b';
+              
+              if (room.polygon && room.polygon.length > 0) {
+                return null;
+              }
+              
+              return (
+                <div
+                  key={room.id}
+                  className="absolute rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-transform hover:scale-105"
+                  style={{
+                    left: `${room.position_x}px`,
+                    top: `${room.position_y}px`,
+                    width: `${room.width || 60}px`,
+                    height: `${room.height || 40}px`,
+                    backgroundColor: color,
+                    color: 'white',
+                    opacity: 0.8
+                  }}
+                  onClick={(e) => onRoomClick(room, e)}
+                  title={`${room.room_number} - ${room.category}`}
+                >
+                  {room.room_number}
+                </div>
+              );
+            })}
           </div>
 
           <div className="mt-4 flex gap-4 text-sm">
