@@ -392,9 +392,9 @@ const FloorPlanEditor = ({
                   return (
                     <g 
                       key={room.id} 
-                      style={{ pointerEvents: 'all', cursor: 'pointer' }} 
+                      style={{ pointerEvents: isDrawing ? 'none' : 'all', cursor: isDrawing ? 'default' : 'pointer' }} 
                       onClick={(e) => onRoomClick(room, e as any)}
-                      onMouseEnter={() => setHoveredRoomId(room.id)}
+                      onMouseEnter={() => !isDrawing && setHoveredRoomId(room.id)}
                       onMouseLeave={() => setHoveredRoomId(null)}
                     >
                       <polygon
