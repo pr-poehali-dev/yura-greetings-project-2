@@ -118,6 +118,7 @@ const HotelDashboard = () => {
               newRoom={newRoom}
               editingRoomBorders={editingRoomBorders}
               editPolygonPoints={editPolygonPoints}
+              selectedRoomId={selectedRoom?.id}
               onFloorChange={setCurrentFloor}
               onNewFloorUpload={handleNewFloorUpload}
               onDeleteFloor={handleDeleteFloor}

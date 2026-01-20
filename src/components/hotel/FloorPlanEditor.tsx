@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ interface FloorPlanEditorProps {
   newRoom: Partial<Room>;
   editingRoomBorders: number | null;
   editPolygonPoints: Array<{x: number, y: number}>;
+  selectedRoomId?: number | null;
   onFloorChange: (floorId: number) => void;
   onNewFloorUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteFloor: (floorId: number) => void;
@@ -64,6 +66,7 @@ const FloorPlanEditor = ({
   newRoom,
   editingRoomBorders,
   editPolygonPoints,
+  selectedRoomId,
   onFloorChange,
   onNewFloorUpload,
   onDeleteFloor,
@@ -82,6 +85,7 @@ const FloorPlanEditor = ({
   onAddEditPoint,
   onDeleteEditPoint
 }: FloorPlanEditorProps) => {
+  const [hoveredRoomId, setHoveredRoomId] = useState<number | null>(null);
   const currentFloorData = floors.find(f => f.id === currentFloor);
 
   return (
@@ -294,15 +298,18 @@ const FloorPlanEditor = ({
             {currentFloorData.rooms.map(room => {
               const color = room.status === 'available' ? '#22c55e' :
                            room.status === 'occupied' ? '#ef4444' : '#f59e0b';
+              const isSelected = selectedRoomId === room.id;
               
               if (room.polygon && room.polygon.length > 0) {
                 return null;
               }
               
+              const isHovered = hoveredRoomId === room.id;
+              
               return (
                 <div
                   key={room.id}
-                  className="absolute rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-transform hover:scale-105"
+                  className="absolute rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-all"
                   style={{
                     left: `${room.position_x}px`,
                     top: `${room.position_y}px`,
@@ -310,9 +317,17 @@ const FloorPlanEditor = ({
                     height: `${room.height || 40}px`,
                     backgroundColor: color,
                     color: 'white',
-                    opacity: 0.8
+                    opacity: isSelected ? 1 : isHovered ? 0.95 : 0.8,
+                    border: isSelected ? '3px solid white' : isHovered ? '2px solid white' : 'none',
+                    boxShadow: isSelected 
+                      ? '0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4)' 
+                      : isHovered ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none',
+                    transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                    zIndex: isSelected ? 10 : isHovered ? 5 : 1
                   }}
                   onClick={(e) => onRoomClick(room, e)}
+                  onMouseEnter={() => setHoveredRoomId(room.id)}
+                  onMouseLeave={() => setHoveredRoomId(null)}
                   title={`${room.room_number} - ${room.category}`}
                 >
                   {room.room_number}
@@ -324,6 +339,8 @@ const FloorPlanEditor = ({
               {currentFloorData.rooms.map(room => {
                 const color = room.status === 'available' ? '#22c55e' :
                              room.status === 'occupied' ? '#ef4444' : '#f59e0b';
+                const isSelected = selectedRoomId === room.id;
+                const isHovered = hoveredRoomId === room.id;
                 
                 if (room.polygon && room.polygon.length > 0) {
                   const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
@@ -331,24 +348,64 @@ const FloorPlanEditor = ({
                   const centerY = room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length;
                   
                   return (
-                    <g key={room.id} style={{ pointerEvents: 'all', cursor: 'pointer' }} onClick={(e) => onRoomClick(room, e as any)}>
+                    <g 
+                      key={room.id} 
+                      style={{ pointerEvents: 'all', cursor: 'pointer' }} 
+                      onClick={(e) => onRoomClick(room, e as any)}
+                      onMouseEnter={() => setHoveredRoomId(room.id)}
+                      onMouseLeave={() => setHoveredRoomId(null)}
+                    >
                       <polygon
                         points={points}
                         fill={color}
-                        fillOpacity="0.4"
+                        fillOpacity={isSelected ? "0.7" : isHovered ? "0.55" : "0.4"}
                         stroke={color}
                         strokeWidth="2"
-                        className="transition-opacity hover:opacity-75"
+                        className="transition-all"
                       />
+                      {isSelected && (
+                        <>
+                          <polygon
+                            points={points}
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="5"
+                            strokeDasharray="10,5"
+                            style={{ filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))' }}
+                          />
+                          <polygon
+                            points={points}
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="2"
+                            opacity="0.6"
+                          />
+                        </>
+                      )}
+                      {isHovered && !isSelected && (
+                        <polygon
+                          points={points}
+                          fill="none"
+                          stroke="white"
+                          strokeWidth="3"
+                          opacity="0.7"
+                          style={{ filter: 'drop-shadow(0 0 5px rgba(255, 255, 255, 0.5))' }}
+                        />
+                      )}
                       <text
                         x={centerX}
                         y={centerY}
                         fill="white"
-                        fontSize="12"
+                        fontSize={isSelected ? "15" : isHovered ? "13" : "12"}
                         fontWeight="bold"
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        style={{ pointerEvents: 'none', userSelect: 'none' }}
+                        style={{ 
+                          pointerEvents: 'none', 
+                          userSelect: 'none', 
+                          filter: isSelected ? 'drop-shadow(0 0 5px rgba(0, 0, 0, 0.9))' : isHovered ? 'drop-shadow(0 0 3px rgba(0, 0, 0, 0.7))' : 'none',
+                          transition: 'all 0.2s ease'
+                        }}
                       >
                         {room.room_number}
                       </text>
