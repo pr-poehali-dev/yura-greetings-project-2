@@ -174,7 +174,8 @@ const FloorPlanEditor = ({
             <img
               src={currentFloorData.plan_image_url}
               alt={`План ${currentFloorData.floor_number} этажа`}
-              className="w-full h-auto"
+              className="w-full h-auto pointer-events-none select-none"
+              draggable="false"
             />
             {currentFloorData.rooms.map(room => (
               <div
