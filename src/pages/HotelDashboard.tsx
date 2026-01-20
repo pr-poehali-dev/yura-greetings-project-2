@@ -248,8 +248,6 @@ const HotelDashboard = () => {
           : floor
       ));
 
-      setIsDrawing(false);
-
       toast({
         title: "Номер добавлен",
         description: `Номер ${roomNumber} добавлен на схему`
@@ -334,6 +332,9 @@ const HotelDashboard = () => {
         price: selectedRoom.price,
         position_x: selectedRoom.position_x,
         position_y: selectedRoom.position_y,
+        width: selectedRoom.width,
+        height: selectedRoom.height,
+        polygon: selectedRoom.polygon,
         status: selectedRoom.status
       });
 

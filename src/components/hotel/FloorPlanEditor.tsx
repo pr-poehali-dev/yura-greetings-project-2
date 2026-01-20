@@ -234,7 +234,37 @@ const FloorPlanEditor = ({
               className="w-full h-auto pointer-events-none select-none"
               draggable="false"
             />
-            <svg className="absolute top-0 left-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+            
+            {currentFloorData.rooms.map(room => {
+              const color = room.status === 'available' ? '#22c55e' :
+                           room.status === 'occupied' ? '#ef4444' : '#f59e0b';
+              
+              if (room.polygon && room.polygon.length > 0) {
+                return null;
+              }
+              
+              return (
+                <div
+                  key={room.id}
+                  className="absolute rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-transform hover:scale-105"
+                  style={{
+                    left: `${room.position_x}px`,
+                    top: `${room.position_y}px`,
+                    width: `${room.width || 60}px`,
+                    height: `${room.height || 40}px`,
+                    backgroundColor: color,
+                    color: 'white',
+                    opacity: 0.8
+                  }}
+                  onClick={(e) => onRoomClick(room, e)}
+                  title={`${room.room_number} - ${room.category}`}
+                >
+                  {room.room_number}
+                </div>
+              );
+            })}
+            
+            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               {currentFloorData.rooms.map(room => {
                 const color = room.status === 'available' ? '#22c55e' :
                              room.status === 'occupied' ? '#ef4444' : '#f59e0b';
@@ -245,7 +275,7 @@ const FloorPlanEditor = ({
                   const centerY = room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length;
                   
                   return (
-                    <g key={room.id} style={{ cursor: 'pointer', pointerEvents: 'all' }} onClick={(e) => onRoomClick(room, e as any)}>
+                    <g key={room.id} style={{ pointerEvents: 'all', cursor: 'pointer' }} onClick={(e) => onRoomClick(room, e as any)}>
                       <polygon
                         points={points}
                         fill={color}
@@ -294,35 +324,6 @@ const FloorPlanEditor = ({
                 </>
               )}
             </svg>
-            
-            {currentFloorData.rooms.map(room => {
-              const color = room.status === 'available' ? '#22c55e' :
-                           room.status === 'occupied' ? '#ef4444' : '#f59e0b';
-              
-              if (room.polygon && room.polygon.length > 0) {
-                return null;
-              }
-              
-              return (
-                <div
-                  key={room.id}
-                  className="absolute rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-transform hover:scale-105"
-                  style={{
-                    left: `${room.position_x}px`,
-                    top: `${room.position_y}px`,
-                    width: `${room.width || 60}px`,
-                    height: `${room.height || 40}px`,
-                    backgroundColor: color,
-                    color: 'white',
-                    opacity: 0.8
-                  }}
-                  onClick={(e) => onRoomClick(room, e)}
-                  title={`${room.room_number} - ${room.category}`}
-                >
-                  {room.room_number}
-                </div>
-              );
-            })}
           </div>
 
           <div className="mt-4 flex gap-4 text-sm">
