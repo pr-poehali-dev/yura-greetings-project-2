@@ -46,6 +46,31 @@ export async function getFloors(): Promise<Floor[]> {
   return response.json();
 }
 
+export async function createFloor(floorNumber: number, imageUrl: string): Promise<Floor> {
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Path': 'floors'
+    },
+    body: JSON.stringify({
+      floor_number: floorNumber,
+      plan_image_url: imageUrl
+    })
+  });
+  return response.json();
+}
+
+export async function deleteFloor(floorId: number): Promise<void> {
+  await fetch(API_URL, {
+    method: 'DELETE',
+    headers: {
+      'X-Path': 'floors',
+      'X-Floor-Id': floorId.toString()
+    }
+  });
+}
+
 export async function uploadImage(file: string, filename: string): Promise<string> {
   const response = await fetch(UPLOAD_URL, {
     method: 'POST',

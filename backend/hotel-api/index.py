@@ -33,6 +33,19 @@ def handler(event: dict, context) -> dict:
                 floors = cur.fetchall()
                 return success_response([dict(f) for f in floors])
             
+            elif method == 'POST':
+                data = json.loads(event.get('body', '{}'))
+                floor_number = data.get('floor_number')
+                plan_image_url = data.get('plan_image_url')
+                
+                cur.execute(
+                    'INSERT INTO floors (floor_number, plan_image_url) VALUES (%s, %s) RETURNING *',
+                    (floor_number, plan_image_url)
+                )
+                conn.commit()
+                floor = cur.fetchone()
+                return success_response(dict(floor))
+            
             elif method == 'PUT':
                 data = json.loads(event.get('body', '{}'))
                 floor_id = data.get('id')
@@ -45,6 +58,13 @@ def handler(event: dict, context) -> dict:
                 conn.commit()
                 floor = cur.fetchone()
                 return success_response(dict(floor))
+            
+            elif method == 'DELETE':
+                floor_id = headers.get('X-Floor-Id')
+                cur.execute('DELETE FROM rooms WHERE floor_id = %s', (floor_id,))
+                cur.execute('DELETE FROM floors WHERE id = %s', (floor_id,))
+                conn.commit()
+                return success_response({'message': 'Floor deleted'})
         
         elif path_header == 'rooms':
             if method == 'GET':

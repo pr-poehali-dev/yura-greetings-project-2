@@ -23,12 +23,13 @@ interface Floor {
 
 interface FloorPlanEditorProps {
   floors: Floor[];
-  currentFloor: number;
+  currentFloor: number | null;
   isDrawing: boolean;
   loading: boolean;
   newRoom: Partial<Room>;
   onFloorChange: (floorId: number) => void;
-  onImageUpload: (floorId: number, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onNewFloorUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDeleteFloor: (floorId: number) => void;
   onToggleDrawing: () => void;
   onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   onRoomClick: (room: Room, e: React.MouseEvent) => void;
@@ -42,7 +43,8 @@ const FloorPlanEditor = ({
   loading,
   newRoom,
   onFloorChange,
-  onImageUpload,
+  onNewFloorUpload,
+  onDeleteFloor,
   onToggleDrawing,
   onCanvasClick,
   onRoomClick,
@@ -53,29 +55,51 @@ const FloorPlanEditor = ({
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Схема этажей</h2>
+        <h2 className="text-2xl font-bold">Управление этажами</h2>
         <div className="flex gap-2">
-          {floors.map(floor => (
-            <Button
-              key={floor.id}
-              variant={currentFloor === floor.id ? 'default' : 'outline'}
-              onClick={() => onFloorChange(floor.id)}
-            >
-              {floor.floor_number} этаж
+          <label className="cursor-pointer">
+            <Button disabled={loading} asChild>
+              <span>
+                <Icon name="Plus" size={16} className="mr-2" />
+                Добавить этаж
+              </span>
             </Button>
-          ))}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={onNewFloorUpload}
+              disabled={loading}
+              className="hidden"
+            />
+          </label>
         </div>
       </div>
 
-      <div className="mb-6">
-        <label className="block mb-2 text-sm font-medium">Загрузить схему этажа</label>
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={(e) => onImageUpload(currentFloor, e)}
-          disabled={loading}
-        />
-      </div>
+      {floors.length > 0 && (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {floors.map(floor => (
+            <div key={floor.id} className="relative">
+              <Button
+                variant={currentFloor === floor.id ? 'default' : 'outline'}
+                onClick={() => onFloorChange(floor.id)}
+              >
+                {floor.floor_number} этаж
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute -top-2 -right-2 h-5 w-5 p-0 rounded-full bg-destructive text-white hover:bg-destructive/90"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteFloor(floor.id);
+                }}
+              >
+                <Icon name="X" size={12} />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {currentFloorData?.plan_image_url && (
         <div className="mb-6">

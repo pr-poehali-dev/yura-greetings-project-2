@@ -46,7 +46,7 @@ const HotelDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [floors, setFloors] = useState<Floor[]>([]);
-  const [currentFloor, setCurrentFloor] = useState(1);
+  const [currentFloor, setCurrentFloor] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,6 +79,10 @@ const HotelDashboard = () => {
       }));
       
       setFloors(floorsWithRooms);
+      
+      if (floorsWithRooms.length > 0 && !currentFloor) {
+        setCurrentFloor(floorsWithRooms[0].id);
+      }
     } catch (error) {
       toast({
         title: "Ошибка загрузки",
@@ -110,9 +114,12 @@ const HotelDashboard = () => {
     navigate('/hotel-admin');
   };
 
-  const handleImageUpload = async (floorId: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNewFloorUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const floorNumber = prompt('Введите номер этажа:');
+    if (!floorNumber) return;
 
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -121,23 +128,22 @@ const HotelDashboard = () => {
       try {
         setLoading(true);
         const cdnUrl = await hotelApi.uploadImage(base64Data, file.name);
-        await hotelApi.updateFloorImage(floorId, cdnUrl);
+        const newFloor = await hotelApi.createFloor(parseInt(floorNumber), cdnUrl);
         
-        setFloors(floors.map(floor =>
-          floor.id === floorId ? { ...floor, plan_image_url: cdnUrl } : floor
-        ));
+        setFloors([...floors, { ...newFloor, rooms: [] }]);
+        setCurrentFloor(newFloor.id);
         
         toast({
-          title: "Схема загружена",
-          description: `Схема ${floorId} этажа успешно загружена`
+          title: "Этаж добавлен",
+          description: `Этаж ${floorNumber} успешно создан`
         });
       } catch (error) {
         toast({
           title: "Ошибка",
-          description: "Не удалось загрузить схему",
+          description: "Не удалось создать этаж",
           variant: "destructive"
         });
-        console.error('Error uploading image:', error);
+        console.error('Error creating floor:', error);
       } finally {
         setLoading(false);
       }
@@ -145,8 +151,36 @@ const HotelDashboard = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleDeleteFloor = async (floorId: number) => {
+    if (!confirm('Удалить этаж и все связанные номера?')) return;
+
+    try {
+      setLoading(true);
+      await hotelApi.deleteFloor(floorId);
+      setFloors(floors.filter(f => f.id !== floorId));
+      
+      if (currentFloor === floorId) {
+        setCurrentFloor(floors[0]?.id || null);
+      }
+      
+      toast({
+        title: "Этаж удалён",
+        description: "Этаж успешно удалён"
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить этаж",
+        variant: "destructive"
+      });
+      console.error('Error deleting floor:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawing || !currentFloor) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -305,7 +339,8 @@ const HotelDashboard = () => {
               loading={loading}
               newRoom={newRoom}
               onFloorChange={setCurrentFloor}
-              onImageUpload={handleImageUpload}
+              onNewFloorUpload={handleNewFloorUpload}
+              onDeleteFloor={handleDeleteFloor}
               onToggleDrawing={() => setIsDrawing(!isDrawing)}
               onCanvasClick={handleCanvasClick}
               onRoomClick={handleRoomClick}
