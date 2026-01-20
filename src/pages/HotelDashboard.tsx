@@ -40,6 +40,9 @@ const HotelDashboard = () => {
     setNewRoom,
     tracePoints,
     isTracing,
+    areaStart,
+    areaEnd,
+    isDrawingArea,
     handleCanvasClick,
     handleFinishPolygon,
     handleCancelPolygon,
@@ -47,7 +50,8 @@ const HotelDashboard = () => {
     handleMouseDown,
     handleMouseUp,
     handleFinishTrace,
-    handleCancelTrace
+    handleCancelTrace,
+    handleCancelArea
   } = useRoomDrawing(floors, setFloors, currentFloor, setLoading, toast);
 
   const {
@@ -128,6 +132,9 @@ const HotelDashboard = () => {
               selectedRoomId={selectedRoom?.id}
               tracePoints={tracePoints}
               isTracing={isTracing}
+              areaStart={areaStart}
+              areaEnd={areaEnd}
+              isDrawingArea={isDrawingArea}
               onFloorChange={setCurrentFloor}
               onNewFloorUpload={handleNewFloorUpload}
               onDeleteFloor={handleDeleteFloor}
@@ -153,6 +160,7 @@ const HotelDashboard = () => {
               onMouseUp={handleMouseUp}
               onFinishTrace={handleFinishTrace}
               onCancelTrace={handleCancelTrace}
+              onCancelArea={handleCancelArea}
             />
           </TabsContent>
 

@@ -30,7 +30,7 @@ interface FloorPlanEditorProps {
   floors: Floor[];
   currentFloor: number | null;
   isDrawing: boolean;
-  drawMode: 'rectangle' | 'polygon' | 'trace';
+  drawMode: 'rectangle' | 'polygon' | 'trace' | 'area';
   polygonPoints: Array<{x: number, y: number}>;
   loading: boolean;
   newRoom: Partial<Room>;
@@ -39,12 +39,15 @@ interface FloorPlanEditorProps {
   selectedRoomId?: number | null;
   tracePoints?: Array<{x: number, y: number}>;
   isTracing?: boolean;
+  areaStart?: {x: number, y: number} | null;
+  areaEnd?: {x: number, y: number} | null;
+  isDrawingArea?: boolean;
   onFloorChange: (floorId: number) => void;
   onNewFloorUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteFloor: (floorId: number) => void;
   onDuplicateFloor: (floorId: number) => void;
   onToggleDrawing: () => void;
-  onDrawModeChange: (mode: 'rectangle' | 'polygon' | 'trace') => void;
+  onDrawModeChange: (mode: 'rectangle' | 'polygon' | 'trace' | 'area') => void;
   onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   onFinishPolygon: () => void;
   onCancelPolygon: () => void;
@@ -61,6 +64,7 @@ interface FloorPlanEditorProps {
   onMouseUp?: () => void;
   onFinishTrace?: () => void;
   onCancelTrace?: () => void;
+  onCancelArea?: () => void;
 }
 
 const FloorPlanEditor = ({
@@ -76,6 +80,9 @@ const FloorPlanEditor = ({
   selectedRoomId,
   tracePoints = [],
   isTracing = false,
+  areaStart = null,
+  areaEnd = null,
+  isDrawingArea = false,
   onFloorChange,
   onNewFloorUpload,
   onDeleteFloor,
@@ -97,7 +104,8 @@ const FloorPlanEditor = ({
   onMouseDown,
   onMouseUp,
   onFinishTrace,
-  onCancelTrace
+  onCancelTrace,
+  onCancelArea
 }: FloorPlanEditorProps) => {
   const [hoveredRoomId, setHoveredRoomId] = useState<number | null>(null);
   const currentFloorData = floors.find(f => f.id === currentFloor);
@@ -243,6 +251,14 @@ const FloorPlanEditor = ({
                   <Icon name="Pen" size={16} className="mr-2" />
                   Обвести по контуру
                 </Button>
+                <Button
+                  variant={drawMode === 'area' ? 'default' : 'outline'}
+                  onClick={() => onDrawModeChange('area')}
+                  size="sm"
+                >
+                  <Icon name="Move" size={16} className="mr-2" />
+                  Выделить область
+                </Button>
               </div>
               
               {drawMode === 'trace' && (
@@ -269,6 +285,29 @@ const FloorPlanEditor = ({
                       >
                         <Icon name="X" size={16} className="mr-2" />
                         Отмена
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {drawMode === 'area' && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <p className="text-sm text-blue-900">
+                    💡 <strong>Зажмите кнопку мыши</strong> в одной точке и ведите курсор — прямоугольная область будет расширяться
+                  </p>
+                  {areaStart && areaEnd && (
+                    <div className="flex gap-2 items-center mt-2">
+                      <span className="text-sm text-blue-900">
+                        Размер: {Math.round(Math.abs(areaEnd.x - areaStart.x))} × {Math.round(Math.abs(areaEnd.y - areaStart.y))} px
+                      </span>
+                      <Button
+                        variant="outline"
+                        onClick={onCancelArea}
+                        size="sm"
+                      >
+                        <Icon name="X" size={16} className="mr-2" />
+                        Отменить
                       </Button>
                     </div>
                   )}
@@ -337,13 +376,13 @@ const FloorPlanEditor = ({
             style={{ 
               minHeight: '600px', 
               cursor: isDrawing 
-                ? (drawMode === 'trace' ? 'crosshair' : 'crosshair') 
+                ? 'crosshair'
                 : editingRoomBorders ? 'move' : 'default' 
             }}
-            onClick={editingRoomBorders ? undefined : (drawMode === 'trace' ? undefined : onCanvasClick)}
-            onMouseMove={drawMode === 'trace' ? onMouseMove : undefined}
-            onMouseDown={drawMode === 'trace' ? onMouseDown : undefined}
-            onMouseUp={drawMode === 'trace' ? onMouseUp : undefined}
+            onClick={editingRoomBorders ? undefined : ((drawMode === 'trace' || drawMode === 'area') ? undefined : onCanvasClick)}
+            onMouseMove={(drawMode === 'trace' || drawMode === 'area') ? onMouseMove : undefined}
+            onMouseDown={(drawMode === 'trace' || drawMode === 'area') ? onMouseDown : undefined}
+            onMouseUp={(drawMode === 'trace' || drawMode === 'area') ? onMouseUp : undefined}
           >
             <img
               src={currentFloorData.plan_image_url}
@@ -526,6 +565,20 @@ const FloorPlanEditor = ({
                     </>
                   )}
                 </>
+              )}
+
+              {drawMode === 'area' && areaStart && areaEnd && (
+                <rect
+                  x={Math.min(areaStart.x, areaEnd.x)}
+                  y={Math.min(areaStart.y, areaEnd.y)}
+                  width={Math.abs(areaEnd.x - areaStart.x)}
+                  height={Math.abs(areaEnd.y - areaStart.y)}
+                  fill="rgba(59, 130, 246, 0.2)"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                  style={{ filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' }}
+                />
               )}
               
               {editingRoomBorders && editPolygonPoints.length > 0 && (
