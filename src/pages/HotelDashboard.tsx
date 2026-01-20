@@ -179,6 +179,35 @@ const HotelDashboard = () => {
     }
   };
 
+  const handleDuplicateFloor = async (floorId: number) => {
+    const floor = floors.find(f => f.id === floorId);
+    if (!floor) return;
+
+    const newFloorNumber = prompt('Введите номер нового этажа:', String(floor.floor_number + 1));
+    if (!newFloorNumber) return;
+
+    try {
+      setLoading(true);
+      const newFloor = await hotelApi.duplicateFloor(floorId, parseInt(newFloorNumber));
+      await loadFloors();
+      setCurrentFloor(newFloor.id);
+      
+      toast({
+        title: "Этаж скопирован",
+        description: `Создан этаж ${newFloorNumber} с копией всех номеров`
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось скопировать этаж",
+        variant: "destructive"
+      });
+      console.error('Error duplicating floor:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDrawing || !currentFloor) return;
 
@@ -341,6 +370,7 @@ const HotelDashboard = () => {
               onFloorChange={setCurrentFloor}
               onNewFloorUpload={handleNewFloorUpload}
               onDeleteFloor={handleDeleteFloor}
+              onDuplicateFloor={handleDuplicateFloor}
               onToggleDrawing={() => setIsDrawing(!isDrawing)}
               onCanvasClick={handleCanvasClick}
               onRoomClick={handleRoomClick}

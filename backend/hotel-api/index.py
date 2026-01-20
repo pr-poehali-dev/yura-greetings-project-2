@@ -66,6 +66,38 @@ def handler(event: dict, context) -> dict:
                 conn.commit()
                 return success_response({'message': 'Floor deleted'})
         
+        elif path_header == 'floors/duplicate':
+            if method == 'POST':
+                data = json.loads(event.get('body', '{}'))
+                floor_id = data.get('floor_id')
+                new_floor_number = data.get('new_floor_number')
+                
+                cur.execute('SELECT * FROM floors WHERE id = %s', (floor_id,))
+                original_floor = cur.fetchone()
+                
+                if not original_floor:
+                    return error_response('Floor not found', 404)
+                
+                cur.execute(
+                    'INSERT INTO floors (floor_number, plan_image_url) VALUES (%s, %s) RETURNING *',
+                    (new_floor_number, original_floor['plan_image_url'])
+                )
+                new_floor = cur.fetchone()
+                
+                cur.execute('SELECT * FROM rooms WHERE floor_id = %s', (floor_id,))
+                rooms = cur.fetchall()
+                
+                for room in rooms:
+                    cur.execute(
+                        '''INSERT INTO rooms (floor_id, room_number, category, price, position_x, position_y, status)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+                        (new_floor['id'], room['room_number'], room['category'], room['price'], 
+                         room['position_x'], room['position_y'], room['status'])
+                    )
+                
+                conn.commit()
+                return success_response(dict(new_floor))
+        
         elif path_header == 'rooms':
             if method == 'GET':
                 floor_id = headers.get('X-Floor-Id')

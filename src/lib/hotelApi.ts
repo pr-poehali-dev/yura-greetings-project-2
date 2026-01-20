@@ -71,6 +71,21 @@ export async function deleteFloor(floorId: number): Promise<void> {
   });
 }
 
+export async function duplicateFloor(floorId: number, newFloorNumber: number): Promise<Floor> {
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Path': 'floors/duplicate'
+    },
+    body: JSON.stringify({
+      floor_id: floorId,
+      new_floor_number: newFloorNumber
+    })
+  });
+  return response.json();
+}
+
 export async function uploadImage(file: string, filename: string): Promise<string> {
   const response = await fetch(UPLOAD_URL, {
     method: 'POST',

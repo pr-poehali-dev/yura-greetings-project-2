@@ -30,6 +30,7 @@ interface FloorPlanEditorProps {
   onFloorChange: (floorId: number) => void;
   onNewFloorUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteFloor: (floorId: number) => void;
+  onDuplicateFloor: (floorId: number) => void;
   onToggleDrawing: () => void;
   onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   onRoomClick: (room: Room, e: React.MouseEvent) => void;
@@ -45,6 +46,7 @@ const FloorPlanEditor = ({
   onFloorChange,
   onNewFloorUpload,
   onDeleteFloor,
+  onDuplicateFloor,
   onToggleDrawing,
   onCanvasClick,
   onRoomClick,
@@ -78,24 +80,39 @@ const FloorPlanEditor = ({
       {floors.length > 0 && (
         <div className="flex gap-2 mb-6 flex-wrap">
           {floors.map(floor => (
-            <div key={floor.id} className="relative">
+            <div key={floor.id} className="relative group">
               <Button
                 variant={currentFloor === floor.id ? 'default' : 'outline'}
                 onClick={() => onFloorChange(floor.id)}
               >
                 {floor.floor_number} этаж
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute -top-2 -right-2 h-5 w-5 p-0 rounded-full bg-destructive text-white hover:bg-destructive/90"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteFloor(floor.id);
-                }}
-              >
-                <Icon name="X" size={12} />
-              </Button>
+              <div className="absolute -top-2 -right-2 flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 rounded-full bg-blue-500 text-white hover:bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicateFloor(floor.id);
+                  }}
+                  title="Копировать этаж"
+                >
+                  <Icon name="Copy" size={12} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 w-5 p-0 rounded-full bg-destructive text-white hover:bg-destructive/90"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteFloor(floor.id);
+                  }}
+                  title="Удалить этаж"
+                >
+                  <Icon name="X" size={12} />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
