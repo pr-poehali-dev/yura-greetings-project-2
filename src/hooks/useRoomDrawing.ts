@@ -30,10 +30,8 @@ export const useRoomDrawing = (
   toast: any
 ) => {
   const [isDrawing, setIsDrawing] = useState(false);
-  const [drawMode, setDrawMode] = useState<'rectangle' | 'polygon' | 'trace' | 'area'>('rectangle');
+  const [drawMode, setDrawMode] = useState<'polygon' | 'area'>('polygon');
   const [polygonPoints, setPolygonPoints] = useState<Array<{x: number, y: number}>>([]);
-  const [isTracing, setIsTracing] = useState(false);
-  const [tracePoints, setTracePoints] = useState<Array<{x: number, y: number}>>([]);
   const [areaStart, setAreaStart] = useState<{x: number, y: number} | null>(null);
   const [areaEnd, setAreaEnd] = useState<{x: number, y: number} | null>(null);
   const [isDrawingArea, setIsDrawingArea] = useState(false);
@@ -53,49 +51,6 @@ export const useRoomDrawing = (
     if (drawMode === 'polygon') {
       setPolygonPoints([...polygonPoints, { x, y }]);
       return;
-    }
-
-    if (drawMode === 'trace') {
-      setTracePoints([...tracePoints, { x, y }]);
-      return;
-    }
-
-    const roomNumber = prompt('Номер комнаты:');
-    if (!roomNumber) return;
-
-    try {
-      setLoading(true);
-      const newRoomData = await hotelApi.createRoom({
-        floor_id: currentFloor,
-        room_number: roomNumber,
-        category: newRoom.category || 'Стандарт',
-        price: newRoom.price || 3500,
-        position_x: x,
-        position_y: y,
-        width: 60,
-        height: 40,
-        status: newRoom.status || 'available'
-      });
-
-      setFloors(floors.map(floor =>
-        floor.id === currentFloor
-          ? { ...floor, rooms: [...floor.rooms, newRoomData] }
-          : floor
-      ));
-
-      toast({
-        title: "Номер добавлен",
-        description: `Номер ${roomNumber} добавлен на схему`
-      });
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось добавить номер",
-        variant: "destructive"
-      });
-      console.error('Error creating room:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -161,17 +116,6 @@ export const useRoomDrawing = (
       setAreaEnd({ x, y });
       return;
     }
-    
-    if (drawMode !== 'trace' || !isTracing) return;
-    
-    if (tracePoints.length > 0) {
-      const lastPoint = tracePoints[tracePoints.length - 1];
-      const distance = Math.sqrt(Math.pow(x - lastPoint.x, 2) + Math.pow(y - lastPoint.y, 2));
-      
-      if (distance > 3) {
-        setTracePoints([...tracePoints, { x, y }]);
-      }
-    }
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -187,11 +131,6 @@ export const useRoomDrawing = (
       setAreaEnd({ x, y });
       return;
     }
-    
-    if (drawMode !== 'trace') return;
-    
-    setIsTracing(true);
-    setTracePoints([{ x, y }]);
   };
 
   const handleMouseUp = async () => {
@@ -202,82 +141,9 @@ export const useRoomDrawing = (
       await handleFinishArea();
       return;
     }
-    
-    if (drawMode !== 'trace') return;
-    setIsTracing(false);
   };
 
-  const simplifyPath = (points: Array<{x: number, y: number}>, tolerance: number = 5): Array<{x: number, y: number}> => {
-    if (points.length < 3) return points;
-    
-    const simplified: Array<{x: number, y: number}> = [points[0]];
-    
-    for (let i = 1; i < points.length - 1; i++) {
-      const prev = simplified[simplified.length - 1];
-      const current = points[i];
-      const distance = Math.sqrt(Math.pow(current.x - prev.x, 2) + Math.pow(current.y - prev.y, 2));
-      
-      if (distance > tolerance) {
-        simplified.push(current);
-      }
-    }
-    
-    simplified.push(points[points.length - 1]);
-    return simplified;
-  };
 
-  const handleFinishTrace = async () => {
-    if (tracePoints.length < 10 || !currentFloor) return;
-
-    const roomNumber = prompt('Номер комнаты:');
-    if (!roomNumber) return;
-
-    const simplified = simplifyPath(tracePoints, 8);
-    const centerX = simplified.reduce((sum, p) => sum + p.x, 0) / simplified.length;
-    const centerY = simplified.reduce((sum, p) => sum + p.y, 0) / simplified.length;
-
-    try {
-      setLoading(true);
-      const newRoomData = await hotelApi.createRoom({
-        floor_id: currentFloor,
-        room_number: roomNumber,
-        category: newRoom.category || 'Стандарт',
-        price: newRoom.price || 3500,
-        position_x: centerX,
-        position_y: centerY,
-        polygon: simplified,
-        status: newRoom.status || 'available'
-      });
-
-      setFloors(floors.map(floor =>
-        floor.id === currentFloor
-          ? { ...floor, rooms: [...floor.rooms, newRoomData] }
-          : floor
-      ));
-
-      setTracePoints([]);
-      setIsDrawing(false);
-
-      toast({
-        title: "Номер добавлен",
-        description: `Номер ${roomNumber} добавлен на схему`
-      });
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось добавить номер",
-        variant: "destructive"
-      });
-      console.error('Error creating room:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancelTrace = () => {
-    setTracePoints([]);
-    setIsTracing(false);
-  };
 
   const handleFinishArea = async () => {
     if (!areaStart || !areaEnd || !currentFloor) return;
@@ -362,8 +228,6 @@ export const useRoomDrawing = (
     setPolygonPoints,
     newRoom,
     setNewRoom,
-    tracePoints,
-    isTracing,
     areaStart,
     areaEnd,
     isDrawingArea,
@@ -373,8 +237,6 @@ export const useRoomDrawing = (
     handleMouseMove,
     handleMouseDown,
     handleMouseUp,
-    handleFinishTrace,
-    handleCancelTrace,
     handleCancelArea
   };
 };

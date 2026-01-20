@@ -30,15 +30,13 @@ interface FloorPlanEditorProps {
   floors: Floor[];
   currentFloor: number | null;
   isDrawing: boolean;
-  drawMode: 'rectangle' | 'polygon' | 'trace' | 'area';
+  drawMode: 'polygon' | 'area';
   polygonPoints: Array<{x: number, y: number}>;
   loading: boolean;
   newRoom: Partial<Room>;
   editingRoomBorders: number | null;
   editPolygonPoints: Array<{x: number, y: number}>;
   selectedRoomId?: number | null;
-  tracePoints?: Array<{x: number, y: number}>;
-  isTracing?: boolean;
   areaStart?: {x: number, y: number} | null;
   areaEnd?: {x: number, y: number} | null;
   isDrawingArea?: boolean;
@@ -47,7 +45,7 @@ interface FloorPlanEditorProps {
   onDeleteFloor: (floorId: number) => void;
   onDuplicateFloor: (floorId: number) => void;
   onToggleDrawing: () => void;
-  onDrawModeChange: (mode: 'rectangle' | 'polygon' | 'trace' | 'area') => void;
+  onDrawModeChange: (mode: 'polygon' | 'area') => void;
   onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   onFinishPolygon: () => void;
   onCancelPolygon: () => void;
@@ -62,8 +60,6 @@ interface FloorPlanEditorProps {
   onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseUp?: () => void;
-  onFinishTrace?: () => void;
-  onCancelTrace?: () => void;
   onCancelArea?: () => void;
 }
 
@@ -78,8 +74,6 @@ const FloorPlanEditor = ({
   editingRoomBorders,
   editPolygonPoints,
   selectedRoomId,
-  tracePoints = [],
-  isTracing = false,
   areaStart = null,
   areaEnd = null,
   isDrawingArea = false,
@@ -103,8 +97,6 @@ const FloorPlanEditor = ({
   onMouseMove,
   onMouseDown,
   onMouseUp,
-  onFinishTrace,
-  onCancelTrace,
   onCancelArea
 }: FloorPlanEditorProps) => {
   const [hoveredRoomId, setHoveredRoomId] = useState<number | null>(null);
@@ -228,28 +220,12 @@ const FloorPlanEditor = ({
             <div className="space-y-4 mb-4 p-4 bg-muted rounded-lg">
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  variant={drawMode === 'rectangle' ? 'default' : 'outline'}
-                  onClick={() => onDrawModeChange('rectangle')}
-                  size="sm"
-                >
-                  <Icon name="Square" size={16} className="mr-2" />
-                  Прямоугольник
-                </Button>
-                <Button
                   variant={drawMode === 'polygon' ? 'default' : 'outline'}
                   onClick={() => onDrawModeChange('polygon')}
                   size="sm"
                 >
                   <Icon name="Pentagon" size={16} className="mr-2" />
-                  Произвольная форма
-                </Button>
-                <Button
-                  variant={drawMode === 'trace' ? 'default' : 'outline'}
-                  onClick={() => onDrawModeChange('trace')}
-                  size="sm"
-                >
-                  <Icon name="Pen" size={16} className="mr-2" />
-                  Обвести по контуру
+                  Кликать по углам
                 </Button>
                 <Button
                   variant={drawMode === 'area' ? 'default' : 'outline'}
@@ -261,36 +237,6 @@ const FloorPlanEditor = ({
                 </Button>
               </div>
               
-              {drawMode === 'trace' && (
-                <div className="bg-amber-50 border border-amber-200 rounded p-3">
-                  <p className="text-sm text-amber-900 mb-2">
-                    🖱️ <strong>Зажмите кнопку мыши</strong> и обведите контур номера по границам на схеме
-                  </p>
-                  {tracePoints.length > 0 && (
-                    <div className="flex gap-2 items-center mt-2">
-                      <span className="text-sm text-amber-900">Точек нарисовано: {tracePoints.length}</span>
-                      <Button
-                        variant="default"
-                        onClick={onFinishTrace}
-                        size="sm"
-                        disabled={tracePoints.length < 10}
-                      >
-                        <Icon name="Check" size={16} className="mr-2" />
-                        Завершить
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={onCancelTrace}
-                        size="sm"
-                      >
-                        <Icon name="X" size={16} className="mr-2" />
-                        Отмена
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {drawMode === 'area' && (
                 <div className="bg-blue-50 border border-blue-200 rounded p-3">
                   <p className="text-sm text-blue-900">
@@ -379,10 +325,10 @@ const FloorPlanEditor = ({
                 ? 'crosshair'
                 : editingRoomBorders ? 'move' : 'default' 
             }}
-            onClick={editingRoomBorders ? undefined : ((drawMode === 'trace' || drawMode === 'area') ? undefined : onCanvasClick)}
-            onMouseMove={(drawMode === 'trace' || drawMode === 'area') ? onMouseMove : undefined}
-            onMouseDown={(drawMode === 'trace' || drawMode === 'area') ? onMouseDown : undefined}
-            onMouseUp={(drawMode === 'trace' || drawMode === 'area') ? onMouseUp : undefined}
+            onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : onCanvasClick)}
+            onMouseMove={drawMode === 'area' ? onMouseMove : undefined}
+            onMouseDown={drawMode === 'area' ? onMouseDown : undefined}
+            onMouseUp={drawMode === 'area' ? onMouseUp : undefined}
           >
             <img
               src={currentFloorData.plan_image_url}
@@ -533,40 +479,6 @@ const FloorPlanEditor = ({
                 </>
               )}
               
-              {drawMode === 'trace' && tracePoints.length > 0 && (
-                <>
-                  <polyline
-                    points={tracePoints.map(p => `${p.x},${p.y}`).join(' ')}
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ filter: 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.6))' }}
-                  />
-                  {tracePoints.length > 1 && (
-                    <>
-                      <circle
-                        cx={tracePoints[0].x}
-                        cy={tracePoints[0].y}
-                        r="6"
-                        fill="#10b981"
-                        stroke="white"
-                        strokeWidth="2"
-                      />
-                      <circle
-                        cx={tracePoints[tracePoints.length - 1].x}
-                        cy={tracePoints[tracePoints.length - 1].y}
-                        r="6"
-                        fill="#ef4444"
-                        stroke="white"
-                        strokeWidth="2"
-                      />
-                    </>
-                  )}
-                </>
-              )}
-
               {drawMode === 'area' && areaStart && areaEnd && (
                 <rect
                   x={Math.min(areaStart.x, areaEnd.x)}
