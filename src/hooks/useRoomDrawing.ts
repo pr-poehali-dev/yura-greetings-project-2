@@ -164,10 +164,6 @@ export const useRoomDrawing = (
     
     if (drawMode !== 'trace' || !isTracing) return;
     
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
     if (tracePoints.length > 0) {
       const lastPoint = tracePoints[tracePoints.length - 1];
       const distance = Math.sqrt(Math.pow(x - lastPoint.x, 2) + Math.pow(y - lastPoint.y, 2));
@@ -193,10 +189,6 @@ export const useRoomDrawing = (
     }
     
     if (drawMode !== 'trace') return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
     
     setIsTracing(true);
     setTracePoints([{ x, y }]);
