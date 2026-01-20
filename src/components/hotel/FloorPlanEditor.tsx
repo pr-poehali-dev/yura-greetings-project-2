@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import DraggablePoint from './DraggablePoint';
 
 interface Room {
   id: number;
@@ -32,6 +33,8 @@ interface FloorPlanEditorProps {
   polygonPoints: Array<{x: number, y: number}>;
   loading: boolean;
   newRoom: Partial<Room>;
+  editingRoomBorders: number | null;
+  editPolygonPoints: Array<{x: number, y: number}>;
   onFloorChange: (floorId: number) => void;
   onNewFloorUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteFloor: (floorId: number) => void;
@@ -43,6 +46,12 @@ interface FloorPlanEditorProps {
   onCancelPolygon: () => void;
   onRoomClick: (room: Room, e: React.MouseEvent) => void;
   onNewRoomChange: (room: Partial<Room>) => void;
+  onStartEditBorders: (room: Room) => void;
+  onSaveBorders: () => void;
+  onCancelEditBorders: () => void;
+  onEditPointDrag: (index: number, newX: number, newY: number) => void;
+  onAddEditPoint: (afterIndex: number, x: number, y: number) => void;
+  onDeleteEditPoint: (index: number) => void;
 }
 
 const FloorPlanEditor = ({
@@ -53,6 +62,8 @@ const FloorPlanEditor = ({
   polygonPoints,
   loading,
   newRoom,
+  editingRoomBorders,
+  editPolygonPoints,
   onFloorChange,
   onNewFloorUpload,
   onDeleteFloor,
@@ -63,7 +74,13 @@ const FloorPlanEditor = ({
   onFinishPolygon,
   onCancelPolygon,
   onRoomClick,
-  onNewRoomChange
+  onNewRoomChange,
+  onStartEditBorders,
+  onSaveBorders,
+  onCancelEditBorders,
+  onEditPointDrag,
+  onAddEditPoint,
+  onDeleteEditPoint
 }: FloorPlanEditorProps) => {
   const currentFloorData = floors.find(f => f.id === currentFloor);
 
@@ -145,6 +162,42 @@ const FloorPlanEditor = ({
             </Button>
           </div>
 
+          {editingRoomBorders && (
+            <div className="space-y-4 mb-4 p-4 bg-blue-50 border-2 border-blue-500 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-blue-900">Редактирование границ</h4>
+                  <p className="text-sm text-blue-700">Перемещайте точки, добавляйте новые или удаляйте лишние</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    onClick={onSaveBorders}
+                    size="sm"
+                    disabled={editPolygonPoints.length < 3}
+                  >
+                    <Icon name="Check" size={16} className="mr-2" />
+                    Сохранить
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={onCancelEditBorders}
+                    size="sm"
+                  >
+                    <Icon name="X" size={16} className="mr-2" />
+                    Отмена
+                  </Button>
+                </div>
+              </div>
+              <div className="text-sm text-blue-700">
+                <div className="flex items-center gap-4">
+                  <span>Точек: {editPolygonPoints.length}</span>
+                  <span className="text-xs">💡 Клик между точками = добавить точку | Правый клик на точке = удалить</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isDrawing && (
             <div className="space-y-4 mb-4 p-4 bg-muted rounded-lg">
               <div className="flex gap-2">
@@ -225,8 +278,11 @@ const FloorPlanEditor = ({
 
           <div
             className="relative border-2 border-dashed rounded-lg overflow-hidden"
-            style={{ minHeight: '600px', cursor: isDrawing ? 'crosshair' : 'default' }}
-            onClick={onCanvasClick}
+            style={{ 
+              minHeight: '600px', 
+              cursor: isDrawing ? 'crosshair' : editingRoomBorders ? 'move' : 'default' 
+            }}
+            onClick={editingRoomBorders ? undefined : onCanvasClick}
           >
             <img
               src={currentFloorData.plan_image_url}
@@ -264,7 +320,7 @@ const FloorPlanEditor = ({
               );
             })}
             
-            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+            <svg className="absolute top-0 left-0 w-full h-full" style={{ pointerEvents: editingRoomBorders ? 'all' : 'none' }}>
               {currentFloorData.rooms.map(room => {
                 const color = room.status === 'available' ? '#22c55e' :
                              room.status === 'occupied' ? '#ef4444' : '#f59e0b';
@@ -319,6 +375,65 @@ const FloorPlanEditor = ({
                       cy={point.y}
                       r="4"
                       fill="#3b82f6"
+                    />
+                  ))}
+                </>
+              )}
+              
+              {editingRoomBorders && editPolygonPoints.length > 0 && (
+                <>
+                  <polygon
+                    points={editPolygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                    fill="#3b82f6"
+                    fillOpacity="0.2"
+                    stroke="#3b82f6"
+                    strokeWidth="3"
+                    strokeDasharray="8,4"
+                  />
+                  
+                  {editPolygonPoints.map((point, i) => {
+                    const nextPoint = editPolygonPoints[(i + 1) % editPolygonPoints.length];
+                    const midX = (point.x + nextPoint.x) / 2;
+                    const midY = (point.y + nextPoint.y) / 2;
+                    
+                    return (
+                      <g key={`edge-${i}`}>
+                        <line
+                          x1={point.x}
+                          y1={point.y}
+                          x2={nextPoint.x}
+                          y2={nextPoint.y}
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                        />
+                        <circle
+                          cx={midX}
+                          cy={midY}
+                          r="6"
+                          fill="#10b981"
+                          stroke="white"
+                          strokeWidth="2"
+                          style={{ cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rect = (e.target as SVGElement).ownerSVGElement?.getBoundingClientRect();
+                            if (rect) {
+                              onAddEditPoint(i, midX, midY);
+                            }
+                          }}
+                        />
+                      </g>
+                    );
+                  })}
+                  
+                  {editPolygonPoints.map((point, i) => (
+                    <DraggablePoint
+                      key={`point-${i}`}
+                      x={point.x}
+                      y={point.y}
+                      index={i}
+                      onDrag={onEditPointDrag}
+                      onDelete={onDeleteEditPoint}
                     />
                   ))}
                 </>

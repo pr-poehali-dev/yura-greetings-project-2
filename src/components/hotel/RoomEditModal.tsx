@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import Icon from '@/components/ui/icon';
 
 interface Room {
   id: number;
@@ -23,6 +24,7 @@ interface RoomEditModalProps {
   onUpdate: () => void;
   onDelete: (roomId: number) => void;
   onChange: (room: Room) => void;
+  onEditBorders?: (room: Room) => void;
 }
 
 const RoomEditModal = ({ 
@@ -31,7 +33,8 @@ const RoomEditModal = ({
   onClose, 
   onUpdate, 
   onDelete, 
-  onChange 
+  onChange,
+  onEditBorders
 }: RoomEditModalProps) => {
   if (!selectedRoom) return null;
 
@@ -83,16 +86,30 @@ const RoomEditModal = ({
             </select>
           </div>
 
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onClose} disabled={loading}>
-              Отмена
+          <div className="flex gap-2 justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                if (onEditBorders && selectedRoom) {
+                  onEditBorders(selectedRoom);
+                }
+              }} 
+              disabled={loading || !onEditBorders}
+            >
+              <Icon name="Edit" size={16} className="mr-2" />
+              Редактировать границы
             </Button>
-            <Button variant="destructive" onClick={() => onDelete(selectedRoom.id)} disabled={loading}>
-              Удалить
-            </Button>
-            <Button onClick={onUpdate} disabled={loading}>
-              Сохранить
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} disabled={loading}>
+                Отмена
+              </Button>
+              <Button variant="destructive" onClick={() => onDelete(selectedRoom.id)} disabled={loading}>
+                Удалить
+              </Button>
+              <Button onClick={onUpdate} disabled={loading}>
+                Сохранить
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
