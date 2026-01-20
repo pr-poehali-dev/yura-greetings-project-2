@@ -38,9 +38,16 @@ const HotelDashboard = () => {
     setPolygonPoints,
     newRoom,
     setNewRoom,
+    tracePoints,
+    isTracing,
     handleCanvasClick,
     handleFinishPolygon,
-    handleCancelPolygon
+    handleCancelPolygon,
+    handleMouseMove,
+    handleMouseDown,
+    handleMouseUp,
+    handleFinishTrace,
+    handleCancelTrace
   } = useRoomDrawing(floors, setFloors, currentFloor, setLoading, toast);
 
   const {
@@ -119,6 +126,8 @@ const HotelDashboard = () => {
               editingRoomBorders={editingRoomBorders}
               editPolygonPoints={editPolygonPoints}
               selectedRoomId={selectedRoom?.id}
+              tracePoints={tracePoints}
+              isTracing={isTracing}
               onFloorChange={setCurrentFloor}
               onNewFloorUpload={handleNewFloorUpload}
               onDeleteFloor={handleDeleteFloor}
@@ -139,6 +148,11 @@ const HotelDashboard = () => {
               onEditPointDrag={handleEditPointDrag}
               onAddEditPoint={handleAddEditPoint}
               onDeleteEditPoint={handleDeleteEditPoint}
+              onMouseMove={handleMouseMove}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onFinishTrace={handleFinishTrace}
+              onCancelTrace={handleCancelTrace}
             />
           </TabsContent>
 
