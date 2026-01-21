@@ -110,7 +110,7 @@ const FloorPlanEditor = ({
   const currentFloorData = floors.find(f => f.id === currentFloor);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (drawMode === 'area' || isDrawing) return;
+    if (editingRoomBorders) return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
