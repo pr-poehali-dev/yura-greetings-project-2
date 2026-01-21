@@ -108,6 +108,7 @@ const FloorPlanEditor = ({
   const currentFloorData = floors.find(f => f.id === currentFloor);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (drawMode === 'area' || isDrawing) return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
@@ -372,25 +373,32 @@ const FloorPlanEditor = ({
               onMouseMove={(e) => {
                 if (drawMode === 'area' && onMouseMove) {
                   onMouseMove(e);
-                } else if (!drawMode || drawMode !== 'area') {
-                  handleMouseMoveDrag(e);
+                  return;
                 }
+                if (!isDragging) return;
+                handleMouseMoveDrag(e);
               }}
               onMouseDown={(e) => {
                 if (drawMode === 'area' && onMouseDown) {
                   onMouseDown(e);
-                } else if ((!drawMode || drawMode !== 'area') && !editingRoomBorders) {
+                  return;
+                }
+                if (!editingRoomBorders && scale > 1) {
                   handleMouseDownDrag(e);
                 }
               }}
               onMouseUp={(e) => {
                 if (drawMode === 'area' && onMouseUp) {
                   onMouseUp(e);
-                } else if (!drawMode || drawMode !== 'area') {
+                  return;
+                }
+                if (isDragging) {
                   handleMouseUpDrag(e);
                 }
               }}
-              onMouseLeave={() => handleMouseUpDrag()}
+              onMouseLeave={() => {
+                if (isDragging) handleMouseUpDrag();
+              }}
             >
               <img
                 src={currentFloorData.plan_image_url}
