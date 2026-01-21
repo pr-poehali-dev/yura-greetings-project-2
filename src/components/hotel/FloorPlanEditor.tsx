@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -105,6 +105,8 @@ const FloorPlanEditor = ({
   const [translateY, setTranslateY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const imgRef = useRef<HTMLImageElement>(null);
   const currentFloorData = floors.find(f => f.id === currentFloor);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
@@ -408,10 +410,15 @@ const FloorPlanEditor = ({
               }}
             >
               <img
+                ref={imgRef}
                 src={currentFloorData.plan_image_url}
                 alt={`План ${currentFloorData.floor_number} этажа`}
                 className="w-full h-auto pointer-events-none select-none"
                 draggable="false"
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  setImageDimensions({ width: img.offsetWidth, height: img.offsetHeight });
+                }}
               />
             
             {currentFloorData.rooms.map(room => {
@@ -454,7 +461,12 @@ const FloorPlanEditor = ({
               );
             })}
             
-            <svg className="absolute top-0 left-0 w-full h-full" style={{ pointerEvents: editingRoomBorders ? 'all' : 'none' }}>
+            <svg 
+              className="absolute top-0 left-0" 
+              width={imageDimensions.width}
+              height={imageDimensions.height}
+              style={{ pointerEvents: editingRoomBorders ? 'all' : 'none' }}
+            >
               {currentFloorData.rooms.map(room => {
                 const color = room.status === 'available' ? '#22c55e' :
                              room.status === 'occupied' ? '#ef4444' : '#f59e0b';
