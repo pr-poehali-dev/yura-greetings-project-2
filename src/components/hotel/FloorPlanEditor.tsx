@@ -100,7 +100,16 @@ const FloorPlanEditor = ({
   onCancelArea
 }: FloorPlanEditorProps) => {
   const [hoveredRoomId, setHoveredRoomId] = useState<number | null>(null);
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
   const currentFloorData = floors.find(f => f.id === currentFloor);
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  };
 
   return (
     <Card className="p-6">
@@ -325,17 +334,25 @@ const FloorPlanEditor = ({
                 ? 'crosshair'
                 : editingRoomBorders ? 'move' : 'default' 
             }}
-            onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : onCanvasClick)}
-            onMouseMove={drawMode === 'area' ? onMouseMove : undefined}
-            onMouseDown={drawMode === 'area' ? onMouseDown : undefined}
-            onMouseUp={drawMode === 'area' ? onMouseUp : undefined}
+            onWheel={handleWheel}
           >
-            <img
-              src={currentFloorData.plan_image_url}
-              alt={`План ${currentFloorData.floor_number} этажа`}
-              className="w-full h-auto pointer-events-none select-none"
-              draggable="false"
-            />
+            <div
+              style={{
+                transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
+                transformOrigin: 'top left',
+                transition: 'transform 0.1s ease-out'
+              }}
+              onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : onCanvasClick)}
+              onMouseMove={drawMode === 'area' ? onMouseMove : undefined}
+              onMouseDown={drawMode === 'area' ? onMouseDown : undefined}
+              onMouseUp={drawMode === 'area' ? onMouseUp : undefined}
+            >
+              <img
+                src={currentFloorData.plan_image_url}
+                alt={`План ${currentFloorData.floor_number} этажа`}
+                className="w-full h-auto pointer-events-none select-none"
+                draggable="false"
+              />
             
             {currentFloorData.rooms.map(room => {
               const color = room.status === 'available' ? '#22c55e' :
@@ -552,6 +569,7 @@ const FloorPlanEditor = ({
                 </>
               )}
             </svg>
+            </div>
           </div>
 
           <div className="mt-4 flex gap-4 text-sm">
