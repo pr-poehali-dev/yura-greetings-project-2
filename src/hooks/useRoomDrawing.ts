@@ -41,12 +41,8 @@ export const useRoomDrawing = (
     status: 'available'
   });
 
-  const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleCanvasClick = async (x: number, y: number) => {
     if (!isDrawing || !currentFloor) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
 
     if (drawMode === 'polygon') {
       setPolygonPoints([...polygonPoints, { x, y }]);

@@ -46,7 +46,7 @@ interface FloorPlanEditorProps {
   onDuplicateFloor: (floorId: number) => void;
   onToggleDrawing: () => void;
   onDrawModeChange: (mode: 'polygon' | 'area') => void;
-  onCanvasClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onCanvasClick: (x: number, y: number) => void;
   onFinishPolygon: () => void;
   onCancelPolygon: () => void;
   onRoomClick: (room: Room, e: React.MouseEvent) => void;
@@ -375,13 +375,7 @@ const FloorPlanEditor = ({
                 const rawY = e.clientY - rect.top;
                 const scaledX = (rawX - translateX * scale) / scale;
                 const scaledY = (rawY - translateY * scale) / scale;
-                
-                const syntheticEvent = {
-                  ...e,
-                  clientX: scaledX + rect.left,
-                  clientY: scaledY + rect.top
-                };
-                onCanvasClick(syntheticEvent as React.MouseEvent<HTMLDivElement>);
+                onCanvasClick(scaledX, scaledY);
               })}
               onMouseMove={(e) => {
                 if (drawMode === 'area' && onMouseMove) {
