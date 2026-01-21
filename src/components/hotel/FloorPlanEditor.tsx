@@ -103,12 +103,30 @@ const FloorPlanEditor = ({
   const [scale, setScale] = useState(1);
   const [translateX, setTranslateX] = useState(0);
   const [translateY, setTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const currentFloorData = floors.find(f => f.id === currentFloor);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  };
+
+  const handleMouseDownDrag = (e: React.MouseEvent) => {
+    if (scale === 1 || drawMode === 'area' || editingRoomBorders) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - translateX, y: e.clientY - translateY });
+  };
+
+  const handleMouseMoveDrag = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setTranslateX(e.clientX - dragStart.x);
+    setTranslateY(e.clientY - dragStart.y);
+  };
+
+  const handleMouseUpDrag = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -330,17 +348,23 @@ const FloorPlanEditor = ({
             className="relative border-2 border-dashed rounded-lg overflow-hidden"
             style={{ 
               minHeight: '600px', 
-              cursor: isDrawing 
-                ? 'crosshair'
-                : editingRoomBorders ? 'move' : 'default' 
+              cursor: isDragging 
+                ? 'grabbing'
+                : isDrawing 
+                  ? 'crosshair'
+                  : editingRoomBorders ? 'move' : scale > 1 ? 'grab' : 'default' 
             }}
             onWheel={handleWheel}
+            onMouseDown={handleMouseDownDrag}
+            onMouseMove={handleMouseMoveDrag}
+            onMouseUp={handleMouseUpDrag}
+            onMouseLeave={handleMouseUpDrag}
           >
             <div
               style={{
                 transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
                 transformOrigin: 'top left',
-                transition: 'transform 0.1s ease-out'
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
               }}
               onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : onCanvasClick)}
               onMouseMove={drawMode === 'area' ? onMouseMove : undefined}
