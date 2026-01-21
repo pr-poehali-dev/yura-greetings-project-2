@@ -114,18 +114,24 @@ const FloorPlanEditor = ({
   };
 
   const handleMouseDownDrag = (e: React.MouseEvent) => {
-    if (scale === 1 || drawMode === 'area' || editingRoomBorders) return;
+    if (drawMode === 'area' || editingRoomBorders) return;
+    if (scale === 1) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - translateX, y: e.clientY - translateY });
+    e.stopPropagation();
   };
 
   const handleMouseMoveDrag = (e: React.MouseEvent) => {
     if (!isDragging) return;
     setTranslateX(e.clientX - dragStart.x);
     setTranslateY(e.clientY - dragStart.y);
+    e.stopPropagation();
   };
 
-  const handleMouseUpDrag = () => {
+  const handleMouseUpDrag = (e?: React.MouseEvent) => {
+    if (isDragging && e) {
+      e.stopPropagation();
+    }
     setIsDragging(false);
   };
 
@@ -352,13 +358,9 @@ const FloorPlanEditor = ({
                 ? 'grabbing'
                 : isDrawing 
                   ? 'crosshair'
-                  : editingRoomBorders ? 'move' : scale > 1 ? 'grab' : 'default' 
+                  : editingRoomBorders ? 'move' : scale > 1 && drawMode !== 'area' ? 'grab' : drawMode === 'area' ? 'crosshair' : 'default' 
             }}
             onWheel={handleWheel}
-            onMouseDown={handleMouseDownDrag}
-            onMouseMove={handleMouseMoveDrag}
-            onMouseUp={handleMouseUpDrag}
-            onMouseLeave={handleMouseUpDrag}
           >
             <div
               style={{
@@ -367,9 +369,28 @@ const FloorPlanEditor = ({
                 transition: isDragging ? 'none' : 'transform 0.1s ease-out'
               }}
               onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : onCanvasClick)}
-              onMouseMove={drawMode === 'area' ? onMouseMove : undefined}
-              onMouseDown={drawMode === 'area' ? onMouseDown : undefined}
-              onMouseUp={drawMode === 'area' ? onMouseUp : undefined}
+              onMouseMove={(e) => {
+                if (drawMode === 'area' && onMouseMove) {
+                  onMouseMove(e);
+                } else if (!drawMode || drawMode !== 'area') {
+                  handleMouseMoveDrag(e);
+                }
+              }}
+              onMouseDown={(e) => {
+                if (drawMode === 'area' && onMouseDown) {
+                  onMouseDown(e);
+                } else if ((!drawMode || drawMode !== 'area') && !editingRoomBorders) {
+                  handleMouseDownDrag(e);
+                }
+              }}
+              onMouseUp={(e) => {
+                if (drawMode === 'area' && onMouseUp) {
+                  onMouseUp(e);
+                } else if (!drawMode || drawMode !== 'area') {
+                  handleMouseUpDrag(e);
+                }
+              }}
+              onMouseLeave={() => handleMouseUpDrag()}
             >
               <img
                 src={currentFloorData.plan_image_url}
