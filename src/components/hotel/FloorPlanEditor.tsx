@@ -612,10 +612,7 @@ const FloorPlanEditor = ({
                           style={{ cursor: 'pointer' }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            const rect = (e.target as SVGElement).ownerSVGElement?.getBoundingClientRect();
-                            if (rect) {
-                              onAddEditPoint(i, midX, midY);
-                            }
+                            onAddEditPoint(i, midX, midY);
                           }}
                         />
                       </g>
@@ -630,6 +627,9 @@ const FloorPlanEditor = ({
                       index={i}
                       onDrag={onEditPointDrag}
                       onDelete={onDeleteEditPoint}
+                      scale={scale}
+                      translateX={translateX}
+                      translateY={translateY}
                     />
                   ))}
                 </>

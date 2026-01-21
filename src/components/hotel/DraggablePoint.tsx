@@ -6,9 +6,12 @@ interface DraggablePointProps {
   index: number;
   onDrag: (index: number, x: number, y: number) => void;
   onDelete: (index: number) => void;
+  scale?: number;
+  translateX?: number;
+  translateY?: number;
 }
 
-const DraggablePoint = ({ x, y, index, onDrag, onDelete }: DraggablePointProps) => {
+const DraggablePoint = ({ x, y, index, onDrag, onDelete, scale = 1, translateX = 0, translateY = 0 }: DraggablePointProps) => {
   const isDraggingRef = useRef(false);
 
   const handleMouseDown = (e: React.MouseEvent<SVGCircleElement>) => {
@@ -21,8 +24,10 @@ const DraggablePoint = ({ x, y, index, onDrag, onDelete }: DraggablePointProps) 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!isDraggingRef.current) return;
       const rect = svg.getBoundingClientRect();
-      const newX = moveEvent.clientX - rect.left;
-      const newY = moveEvent.clientY - rect.top;
+      const rawX = moveEvent.clientX - rect.left;
+      const rawY = moveEvent.clientY - rect.top;
+      const newX = (rawX - translateX * scale) / scale;
+      const newY = (rawY - translateY * scale) / scale;
       onDrag(index, newX, newY);
     };
 
