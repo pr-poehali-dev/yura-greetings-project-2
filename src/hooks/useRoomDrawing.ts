@@ -105,12 +105,15 @@ export const useRoomDrawing = (
     setPolygonPoints([]);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, scale = 1, translateX = 0, translateY = 0) => {
     if (!isDrawing) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const rawX = e.clientX - rect.left;
+    const rawY = e.clientY - rect.top;
+    
+    const x = (rawX - translateX * scale) / scale;
+    const y = (rawY - translateY * scale) / scale;
 
     if (drawMode === 'area' && isDrawingArea && areaStart) {
       setAreaEnd({ x, y });
@@ -118,12 +121,15 @@ export const useRoomDrawing = (
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, scale = 1, translateX = 0, translateY = 0) => {
     if (!isDrawing) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const rawX = e.clientX - rect.left;
+    const rawY = e.clientY - rect.top;
+    
+    const x = (rawX - translateX * scale) / scale;
+    const y = (rawY - translateY * scale) / scale;
 
     if (drawMode === 'area') {
       setIsDrawingArea(true);

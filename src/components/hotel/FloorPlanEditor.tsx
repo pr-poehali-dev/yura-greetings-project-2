@@ -57,8 +57,8 @@ interface FloorPlanEditorProps {
   onEditPointDrag: (index: number, newX: number, newY: number) => void;
   onAddEditPoint: (afterIndex: number, x: number, y: number) => void;
   onDeleteEditPoint: (index: number) => void;
-  onMouseMove?: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onMouseMove?: (e: React.MouseEvent<HTMLDivElement>, scale?: number, translateX?: number, translateY?: number) => void;
+  onMouseDown?: (e: React.MouseEvent<HTMLDivElement>, scale?: number, translateX?: number, translateY?: number) => void;
   onMouseUp?: () => void;
   onCancelArea?: () => void;
 }
@@ -372,7 +372,7 @@ const FloorPlanEditor = ({
               onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : onCanvasClick)}
               onMouseMove={(e) => {
                 if (drawMode === 'area' && onMouseMove) {
-                  onMouseMove(e);
+                  onMouseMove(e, scale, translateX, translateY);
                   return;
                 }
                 if (!isDragging) return;
@@ -380,7 +380,7 @@ const FloorPlanEditor = ({
               }}
               onMouseDown={(e) => {
                 if (drawMode === 'area' && onMouseDown) {
-                  onMouseDown(e);
+                  onMouseDown(e, scale, translateX, translateY);
                   return;
                 }
                 if (!editingRoomBorders && scale > 1) {
