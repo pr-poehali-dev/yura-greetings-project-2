@@ -384,8 +384,9 @@ const FloorPlanEditor = ({
                   onMouseMove(e, scale, translateX, translateY);
                   return;
                 }
-                if (!isDragging) return;
-                handleMouseMoveDrag(e);
+                if (isDragging) {
+                  handleMouseMoveDrag(e);
+                }
               }}
               onMouseDown={(e) => {
                 if (drawMode === 'area' && onMouseDown) {
