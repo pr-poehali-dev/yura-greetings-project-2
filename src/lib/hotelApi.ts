@@ -1,6 +1,15 @@
 const API_URL = 'https://functions.poehali.dev/96beb1b0-38c2-439f-89b6-c4d4eb2e5584';
 const UPLOAD_URL = 'https://functions.poehali.dev/ee36d3e2-3eef-4676-bd45-15b1dfa794e2';
 
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`HTTP ${response.status} : ${response.url}`);
+    throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
+  }
+  return response.json();
+}
+
 interface Floor {
   id: number;
   floor_number: number;
@@ -46,7 +55,7 @@ export async function getFloors(): Promise<Floor[]> {
   const response = await fetch(API_URL, {
     headers: { 'X-Path': 'floors' }
   });
-  return response.json();
+  return handleResponse<Floor[]>(response);
 }
 
 export async function createFloor(floorNumber: number, imageUrl: string): Promise<Floor> {
@@ -61,7 +70,7 @@ export async function createFloor(floorNumber: number, imageUrl: string): Promis
       plan_image_url: imageUrl
     })
   });
-  return response.json();
+  return handleResponse<Floor>(response);
 }
 
 export async function deleteFloor(floorId: number): Promise<void> {
@@ -86,7 +95,7 @@ export async function duplicateFloor(floorId: number, newFloorNumber: number): P
       new_floor_number: newFloorNumber
     })
   });
-  return response.json();
+  return handleResponse<Floor>(response);
 }
 
 export async function uploadImage(file: string, filename: string): Promise<string> {
@@ -113,7 +122,7 @@ export async function updateFloorImage(floorId: number, imageUrl: string): Promi
       plan_image_url: imageUrl
     })
   });
-  return response.json();
+  return handleResponse<Floor>(response);
 }
 
 export async function getRooms(floorId?: number): Promise<Room[]> {
@@ -122,7 +131,7 @@ export async function getRooms(floorId?: number): Promise<Room[]> {
     headers['X-Floor-Id'] = floorId.toString();
   }
   const response = await fetch(API_URL, { headers });
-  return response.json();
+  return handleResponse<Room[]>(response);
 }
 
 export async function createRoom(room: {
@@ -145,7 +154,7 @@ export async function createRoom(room: {
     },
     body: JSON.stringify(room)
   });
-  return response.json();
+  return handleResponse<Room>(response);
 }
 
 export async function updateRoom(room: {
@@ -168,7 +177,7 @@ export async function updateRoom(room: {
     },
     body: JSON.stringify(room)
   });
-  return response.json();
+  return handleResponse<Room>(response);
 }
 
 export async function deleteRoom(roomId: number): Promise<void> {
@@ -185,7 +194,7 @@ export async function getBookings(): Promise<Booking[]> {
   const response = await fetch(API_URL, {
     headers: { 'X-Path': 'bookings' }
   });
-  return response.json();
+  return handleResponse<Booking[]>(response);
 }
 
 export async function createBooking(booking: {
@@ -206,5 +215,5 @@ export async function createBooking(booking: {
     },
     body: JSON.stringify(booking)
   });
-  return response.json();
+  return handleResponse<Booking>(response);
 }
