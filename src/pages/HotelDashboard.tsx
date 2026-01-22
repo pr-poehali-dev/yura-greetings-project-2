@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import FloorPlanEditor from '@/components/hotel/FloorPlanEditor';
 import BookingsList from '@/components/hotel/BookingsList';
 import RoomEditModal from '@/components/hotel/RoomEditModal';
+import RoomsList from '@/components/hotel/RoomsList';
 import { useHotelFloors } from '@/hooks/useHotelFloors';
 import { useRoomDrawing } from '@/hooks/useRoomDrawing';
 import { useRoomEditing } from '@/hooks/useRoomEditing';
@@ -103,10 +104,14 @@ const HotelDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="floors" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-8">
             <TabsTrigger value="floors">
               <Icon name="Building" size={16} className="mr-2" />
               Этажи
+            </TabsTrigger>
+            <TabsTrigger value="rooms">
+              <Icon name="DoorOpen" size={16} className="mr-2" />
+              Все номера
             </TabsTrigger>
             <TabsTrigger value="bookings">
               <Icon name="Calendar" size={16} className="mr-2" />
@@ -153,6 +158,15 @@ const HotelDashboard = () => {
               onMouseDown={handleMouseDown}
               onMouseUp={handleMouseUp}
               onCancelArea={handleCancelArea}
+            />
+          </TabsContent>
+
+          <TabsContent value="rooms">
+            <RoomsList
+              floors={floors}
+              loading={loading}
+              onDeleteRoom={handleDeleteRoom}
+              onEditRoom={(room) => setSelectedRoom(room)}
             />
           </TabsContent>
 
