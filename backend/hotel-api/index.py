@@ -117,21 +117,28 @@ def handler(event: dict, context) -> dict:
             elif method == 'POST':
                 data = json.loads(event.get('body', '{}'))
                 polygon_json = json.dumps(data.get('polygon')) if data.get('polygon') else None
-                cur.execute(
-                    '''INSERT INTO rooms (floor_id, room_number, category, price, position_x, position_y, 
-                       width, height, polygon, status)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *''',
-                    (data['floor_id'], data['room_number'], data['category'], 
-                     data['price'], data['position_x'], data['position_y'],
-                     data.get('width'), data.get('height'), polygon_json,
-                     data.get('status', 'available'))
-                )
-                conn.commit()
-                room = cur.fetchone()
-                room_dict = dict(room)
-                if room_dict.get('polygon'):
-                    room_dict['polygon'] = json.loads(room_dict['polygon'])
-                return success_response(room_dict)
+                try:
+                    cur.execute(
+                        '''INSERT INTO rooms (floor_id, room_number, category, price, position_x, position_y, 
+                           width, height, polygon, status)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *''',
+                        (data['floor_id'], data['room_number'], data['category'], 
+                         data['price'], data['position_x'], data['position_y'],
+                         data.get('width'), data.get('height'), polygon_json,
+                         data.get('status', 'available'))
+                    )
+                    conn.commit()
+                    room = cur.fetchone()
+                    room_dict = dict(room)
+                    if room_dict.get('polygon'):
+                        room_dict['polygon'] = json.loads(room_dict['polygon'])
+                    return success_response(room_dict)
+                except Exception as e:
+                    conn.rollback()
+                    error_msg = str(e)
+                    if 'rooms_floor_id_room_number_key' in error_msg or 'duplicate key' in error_msg.lower():
+                        return error_response(f"Номер {data['room_number']} уже существует на этом этаже", 409)
+                    return error_response(f"Ошибка создания номера: {error_msg}", 500)
             
             elif method == 'PUT':
                 data = json.loads(event.get('body', '{}'))
