@@ -1,11 +1,38 @@
 const API_URL = 'https://functions.poehali.dev/96beb1b0-38c2-439f-89b6-c4d4eb2e5584';
 const UPLOAD_URL = 'https://functions.poehali.dev/ee36d3e2-3eef-4676-bd45-15b1dfa794e2';
 
+export class ApiError extends Error {
+  status: number;
+  details: string;
+
+  constructor(message: string, status: number, details: string) {
+    super(message);
+    this.status = status;
+    this.details = details;
+    this.name = 'ApiError';
+  }
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const text = await response.text();
     console.error(`HTTP ${response.status} : ${response.url}`);
-    throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
+    
+    try {
+      const errorData = JSON.parse(text);
+      throw new ApiError(
+        errorData.error || `HTTP ${response.status}`,
+        response.status,
+        errorData.error || text
+      );
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+      throw new ApiError(
+        `HTTP ${response.status}`,
+        response.status,
+        text || response.statusText
+      );
+    }
   }
   return response.json();
 }

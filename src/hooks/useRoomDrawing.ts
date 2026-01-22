@@ -85,13 +85,22 @@ export const useRoomDrawing = (
         title: "Номер добавлен",
         description: `Номер ${roomNumber} добавлен на схему`
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error creating room:', error);
+      
+      if (error.status === 409) {
+        const retry = confirm(`${error.details}\n\nХотите ввести другой номер комнаты?`);
+        if (retry) {
+          handleFinishPolygon();
+          return;
+        }
+      }
+      
       toast({
-        title: "Ошибка",
-        description: "Не удалось добавить номер",
+        title: "Ошибка создания номера",
+        description: error.details || "Не удалось добавить номер",
         variant: "destructive"
       });
-      console.error('Error creating room:', error);
     } finally {
       setLoading(false);
     }
@@ -207,13 +216,24 @@ export const useRoomDrawing = (
         title: "Номер добавлен",
         description: `Номер ${roomNumber} добавлен на схему`
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error creating room:', error);
+      
+      if (error.status === 409) {
+        setAreaStart(null);
+        setAreaEnd(null);
+        const retry = confirm(`${error.details}\n\nХотите ввести другой номер комнаты?`);
+        if (retry) {
+          handleFinishArea();
+          return;
+        }
+      }
+      
       toast({
-        title: "Ошибка",
-        description: "Не удалось добавить номер",
+        title: "Ошибка создания номера",
+        description: error.details || "Не удалось добавить номер",
         variant: "destructive"
       });
-      console.error('Error creating room:', error);
     } finally {
       setLoading(false);
     }
