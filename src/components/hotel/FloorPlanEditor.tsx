@@ -372,11 +372,12 @@ const FloorPlanEditor = ({
                 transition: isDragging ? 'none' : 'transform 0.1s ease-out'
               }}
               onClick={editingRoomBorders ? undefined : (drawMode === 'area' ? undefined : (e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
+                if (!imgRef.current) return;
+                const rect = imgRef.current.getBoundingClientRect();
                 const rawX = e.clientX - rect.left;
                 const rawY = e.clientY - rect.top;
-                const scaledX = (rawX - translateX * scale) / scale;
-                const scaledY = (rawY - translateY * scale) / scale;
+                const scaledX = rawX / scale;
+                const scaledY = rawY / scale;
                 onCanvasClick(scaledX, scaledY);
               })}
               onMouseMove={(e) => {

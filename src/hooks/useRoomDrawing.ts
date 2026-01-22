@@ -104,12 +104,14 @@ export const useRoomDrawing = (
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, scale = 1, translateX = 0, translateY = 0) => {
     if (!isDrawing) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
+    const target = e.currentTarget.querySelector('img');
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
     const rawX = e.clientX - rect.left;
     const rawY = e.clientY - rect.top;
     
-    const x = (rawX - translateX * scale) / scale;
-    const y = (rawY - translateY * scale) / scale;
+    const x = rawX / scale;
+    const y = rawY / scale;
 
     if (drawMode === 'area' && isDrawingArea && areaStart) {
       setAreaEnd({ x, y });
@@ -120,12 +122,14 @@ export const useRoomDrawing = (
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>, scale = 1, translateX = 0, translateY = 0) => {
     if (!isDrawing) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
+    const target = e.currentTarget.querySelector('img');
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
     const rawX = e.clientX - rect.left;
     const rawY = e.clientY - rect.top;
     
-    const x = (rawX - translateX * scale) / scale;
-    const y = (rawY - translateY * scale) / scale;
+    const x = rawX / scale;
+    const y = rawY / scale;
 
     if (drawMode === 'area') {
       setIsDrawingArea(true);
