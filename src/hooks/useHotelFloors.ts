@@ -35,7 +35,13 @@ export const useHotelFloors = (toast: any) => {
       
       const floorsWithRooms = floorsData.map(floor => ({
         ...floor,
-        rooms: allRooms.filter(room => room.floor_id === floor.id)
+        rooms: allRooms
+          .filter(room => room.floor_id === floor.id)
+          .filter(room => 
+            room.id && 
+            room.room_number && 
+            ['available', 'occupied', 'maintenance'].includes(room.status)
+          )
       }));
       
       setFloors(floorsWithRooms);
