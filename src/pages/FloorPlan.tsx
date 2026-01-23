@@ -123,7 +123,7 @@ const FloorPlan = () => {
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    setImageDimensions({ width: img.offsetWidth, height: img.offsetHeight });
+    setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
   };
 
   if (!checkIn || !checkOut) {
