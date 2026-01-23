@@ -6,15 +6,24 @@ import Icon from '@/components/ui/icon';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
-interface RoomOnFloor {
-  id: string;
+interface Room {
+  id: number;
   number: string;
-  floor: number;
   category: string;
   price: number;
-  isAvailable: boolean;
-  x: number;
-  y: number;
+  position_x: number;
+  position_y: number;
+  status: string;
+  width: number | null;
+  height: number | null;
+  polygon: Array<{ x: number; y: number }> | null;
+}
+
+interface Floor {
+  id: number;
+  floor_number: number;
+  plan_image_url: string | null;
+  rooms: Room[];
 }
 
 const FloorPlan = () => {
@@ -28,54 +37,44 @@ const FloorPlan = () => {
   const checkIn = checkInStr ? new Date(checkInStr) : null;
   const checkOut = checkOutStr ? new Date(checkOutStr) : null;
 
-  const [selectedFloor, setSelectedFloor] = useState(1);
-  const [selectedRoom, setSelectedRoom] = useState<RoomOnFloor | null>(null);
-  const [rooms, setRooms] = useState<RoomOnFloor[]>([]);
+  const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [floors, setFloors] = useState<Floor[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRooms = async () => {
+    const fetchFloors = async () => {
       setLoading(true);
       
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockRooms: RoomOnFloor[] = [
-        { id: '101', number: '101', floor: 1, category: 'Стандарт', price: 3500, isAvailable: true, x: 50, y: 100 },
-        { id: '102', number: '102', floor: 1, category: 'Стандарт', price: 3500, isAvailable: true, x: 200, y: 100 },
-        { id: '103', number: '103', floor: 1, category: 'Стандарт', price: 3500, isAvailable: false, x: 350, y: 100 },
-        { id: '104', number: '104', floor: 1, category: 'Комфорт', price: 5000, isAvailable: true, x: 500, y: 100 },
-        { id: '105', number: '105', floor: 1, category: 'Стандарт', price: 3500, isAvailable: true, x: 50, y: 250 },
-        { id: '106', number: '106', floor: 1, category: 'Стандарт', price: 3500, isAvailable: false, x: 200, y: 250 },
+      try {
+        const response = await fetch('https://functions.poehali.dev/4250a74c-56b6-4c2d-b516-8640091b4926');
+        const data = await response.json();
         
-        { id: '201', number: '201', floor: 2, category: 'Комфорт', price: 5000, isAvailable: true, x: 50, y: 100 },
-        { id: '202', number: '202', floor: 2, category: 'Комфорт', price: 5000, isAvailable: true, x: 200, y: 100 },
-        { id: '203', number: '203', floor: 2, category: 'Люкс', price: 8500, isAvailable: true, x: 350, y: 100 },
-        { id: '204', number: '204', floor: 2, category: 'Комфорт', price: 5000, isAvailable: false, x: 500, y: 100 },
-        { id: '205', number: '205', floor: 2, category: 'Комфорт', price: 5000, isAvailable: true, x: 50, y: 250 },
-        
-        { id: '301', number: '301', floor: 3, category: 'Люкс', price: 8500, isAvailable: true, x: 50, y: 100 },
-        { id: '302', number: '302', floor: 3, category: 'Люкс', price: 8500, isAvailable: false, x: 200, y: 100 },
-        { id: '303', number: '303', floor: 3, category: 'Люкс', price: 8500, isAvailable: true, x: 350, y: 100 },
-      ];
-      
-      setRooms(mockRooms);
-      setLoading(false);
+        if (data.floors && data.floors.length > 0) {
+          setFloors(data.floors);
+          setSelectedFloor(data.floors[0].floor_number);
+        }
+      } catch (error) {
+        console.error('Error fetching floors:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchRooms();
-  }, [checkInStr, checkOutStr, categoryFilter]);
+    fetchFloors();
+  }, []);
 
-  const floorRooms = rooms.filter(room => {
-    const matchesFloor = room.floor === selectedFloor;
+  const currentFloor = floors.find(f => f.floor_number === selectedFloor);
+  
+  const floorRooms = currentFloor?.rooms.filter(room => {
     const matchesCategory = !categoryFilter || room.category === categoryFilter;
-    return matchesFloor && matchesCategory;
-  });
+    return matchesCategory;
+  }) || [];
 
-  const availableRooms = floorRooms.filter(r => r.isAvailable);
-  const floors = [1, 2, 3];
+  const availableRooms = floorRooms.filter(r => r.status === 'available');
 
-  const handleRoomClick = (room: RoomOnFloor) => {
-    if (room.isAvailable) {
+  const handleRoomClick = (room: Room) => {
+    if (room.status === 'available') {
       setSelectedRoom(room);
     }
   };
@@ -125,16 +124,16 @@ const FloorPlan = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Card className="p-6">
-              <div className="flex gap-2 mb-6">
+              <div className="flex gap-2 mb-6 overflow-x-auto">
                 {floors.map((floor) => (
                   <Button
-                    key={floor}
-                    variant={selectedFloor === floor ? 'default' : 'outline'}
-                    onClick={() => setSelectedFloor(floor)}
-                    className="flex-1"
+                    key={floor.id}
+                    variant={selectedFloor === floor.floor_number ? 'default' : 'outline'}
+                    onClick={() => setSelectedFloor(floor.floor_number)}
+                    className="flex-shrink-0"
                   >
                     <Icon name="Building" size={16} className="mr-2" />
-                    {floor} этаж
+                    {floor.floor_number} этаж
                   </Button>
                 ))}
               </div>
@@ -143,8 +142,14 @@ const FloorPlan = () => {
                 <div className="flex items-center justify-center py-20">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                 </div>
-              ) : (
-                <div className="relative bg-muted/30 rounded-lg p-8" style={{ minHeight: '400px' }}>
+              ) : floors.length === 0 ? (
+                <div className="bg-muted/30 rounded-lg p-8 text-center">
+                  <Icon name="Building" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-bold mb-2">Этажи не настроены</h3>
+                  <p className="text-muted-foreground">Пожалуйста, добавьте этажи в панели администратора</p>
+                </div>
+              ) : currentFloor?.plan_image_url ? (
+                <>
                   <div className="text-xs text-muted-foreground mb-4 flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded bg-green-500"></div>
@@ -155,29 +160,127 @@ const FloorPlan = () => {
                       <span>Занят</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded border-2 border-primary bg-primary/20"></div>
+                      <div className="w-4 h-4 rounded border-2 border-primary bg-primary/50"></div>
                       <span>Выбран</span>
                     </div>
                   </div>
 
-                  {floorRooms.map((room) => (
-                    <div
-                      key={room.id}
-                      onClick={() => handleRoomClick(room)}
-                      className={`absolute w-24 h-24 rounded-lg border-2 flex flex-col items-center justify-center transition-all ${
-                        selectedRoom?.id === room.id
-                          ? 'border-primary bg-primary/20 scale-110 shadow-lg'
-                          : room.isAvailable
-                          ? 'border-green-500 bg-green-500/20 hover:scale-105 cursor-pointer hover:shadow-md'
-                          : 'border-red-500 bg-red-500/20 cursor-not-allowed opacity-50'
-                      }`}
-                      style={{ left: `${room.x}px`, top: `${room.y}px` }}
+                  <div className="relative bg-muted/30 rounded-lg overflow-hidden">
+                    <svg
+                      width="100%"
+                      viewBox="0 0 1280 720"
+                      className="w-full h-auto"
+                      style={{ maxHeight: '600px' }}
                     >
-                      <div className="text-lg font-bold">{room.number}</div>
-                      <div className="text-xs text-muted-foreground">{room.category}</div>
-                      <div className="text-sm font-medium">{room.price} ₽</div>
-                    </div>
-                  ))}
+                      <image
+                        href={currentFloor.plan_image_url}
+                        width="1280"
+                        height="720"
+                        opacity="0.9"
+                      />
+                      {floorRooms.map((room) => {
+                        const isSelected = selectedRoom?.id === room.id;
+                        const isAvailable = room.status === 'available';
+                        
+                        let fillColor = isAvailable ? '#22c55e' : '#ef4444';
+                        let strokeColor = isAvailable ? '#16a34a' : '#dc2626';
+                        let opacity = 0.3;
+                        
+                        if (isSelected) {
+                          fillColor = 'hsl(var(--primary))';
+                          strokeColor = 'hsl(var(--primary))';
+                          opacity = 0.5;
+                        }
+                        
+                        if (room.polygon) {
+                          const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
+                          
+                          return (
+                            <g
+                              key={room.id}
+                              onClick={() => handleRoomClick(room)}
+                              className={isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
+                              style={{ transition: 'all 0.2s' }}
+                            >
+                              <polygon
+                                points={points}
+                                fill={fillColor}
+                                stroke={strokeColor}
+                                strokeWidth="2"
+                                opacity={opacity}
+                                className="hover:opacity-60"
+                              />
+                              <text
+                                x={room.position_x}
+                                y={room.position_y - 10}
+                                textAnchor="middle"
+                                className="text-xs font-bold fill-foreground pointer-events-none"
+                              >
+                                {room.number}
+                              </text>
+                              <text
+                                x={room.position_x}
+                                y={room.position_y + 10}
+                                textAnchor="middle"
+                                className="text-[10px] fill-muted-foreground pointer-events-none"
+                              >
+                                {room.price} ₽
+                              </text>
+                            </g>
+                          );
+                        }
+                        
+                        if (room.width && room.height) {
+                          const x = room.position_x;
+                          const y = room.position_y;
+                          
+                          return (
+                            <g
+                              key={room.id}
+                              onClick={() => handleRoomClick(room)}
+                              className={isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
+                            >
+                              <rect
+                                x={x}
+                                y={y}
+                                width={room.width}
+                                height={room.height}
+                                fill={fillColor}
+                                stroke={strokeColor}
+                                strokeWidth="2"
+                                opacity={opacity}
+                                rx="4"
+                                className="hover:opacity-60"
+                              />
+                              <text
+                                x={x + room.width / 2}
+                                y={y + room.height / 2 - 5}
+                                textAnchor="middle"
+                                className="text-sm font-bold fill-foreground pointer-events-none"
+                              >
+                                {room.number}
+                              </text>
+                              <text
+                                x={x + room.width / 2}
+                                y={y + room.height / 2 + 12}
+                                textAnchor="middle"
+                                className="text-xs fill-muted-foreground pointer-events-none"
+                              >
+                                {room.price} ₽
+                              </text>
+                            </g>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                    </svg>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-muted/30 rounded-lg p-8 text-center">
+                  <Icon name="ImageOff" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">План этажа не загружен</p>
                 </div>
               )}
 

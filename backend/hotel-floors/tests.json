@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Get floors and rooms",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "floors": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
