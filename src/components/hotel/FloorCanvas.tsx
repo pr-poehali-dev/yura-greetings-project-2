@@ -84,6 +84,10 @@ const FloorCanvas = ({
   const [hoveredRoomId, setHoveredRoomId] = useState<number | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  const displayScale = imgRef.current && imageDimensions.width > 0
+    ? imgRef.current.offsetWidth / imageDimensions.width
+    : 1;
+
   return (
     <div
       className="relative border-2 border-dashed rounded-lg overflow-hidden"
@@ -168,10 +172,10 @@ const FloorCanvas = ({
               key={room.id}
               className="absolute rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-all"
               style={{
-                left: `${room.position_x}px`,
-                top: `${room.position_y}px`,
-                width: `${room.width || 60}px`,
-                height: `${room.height || 40}px`,
+                left: `${room.position_x * displayScale}px`,
+                top: `${room.position_y * displayScale}px`,
+                width: `${(room.width || 60) * displayScale}px`,
+                height: `${(room.height || 40) * displayScale}px`,
                 backgroundColor: color,
                 color: 'white',
                 opacity: isSelected ? 1 : isHovered ? 0.95 : 0.8,
@@ -194,8 +198,8 @@ const FloorCanvas = ({
         
         <svg 
           className="absolute top-0 left-0" 
-          width={imageDimensions.width}
-          height={imageDimensions.height}
+          width={imageDimensions.width * displayScale}
+          height={imageDimensions.height * displayScale}
           style={{ pointerEvents: editingRoomBorders ? 'all' : 'none' }}
         >
           {currentFloorData.rooms.map(room => {
@@ -205,9 +209,9 @@ const FloorCanvas = ({
             const isHovered = hoveredRoomId === room.id;
             
             if (room.polygon && room.polygon.length > 0) {
-              const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
-              const centerX = room.polygon.reduce((sum, p) => sum + p.x, 0) / room.polygon.length;
-              const centerY = room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length;
+              const points = room.polygon.map(p => `${p.x * displayScale},${p.y * displayScale}`).join(' ');
+              const centerX = (room.polygon.reduce((sum, p) => sum + p.x, 0) / room.polygon.length) * displayScale;
+              const centerY = (room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length) * displayScale;
               
               return (
                 <g 
@@ -281,7 +285,7 @@ const FloorCanvas = ({
           {drawMode === 'polygon' && polygonPoints.length > 0 && (
             <>
               <polyline
-                points={polygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                points={polygonPoints.map(p => `${p.x * displayScale},${p.y * displayScale}`).join(' ')}
                 fill="none"
                 stroke="#3b82f6"
                 strokeWidth="2"
@@ -290,8 +294,8 @@ const FloorCanvas = ({
               {polygonPoints.map((point, i) => (
                 <circle
                   key={i}
-                  cx={point.x}
-                  cy={point.y}
+                  cx={point.x * displayScale}
+                  cy={point.y * displayScale}
                   r="4"
                   fill="#3b82f6"
                 />
@@ -301,10 +305,10 @@ const FloorCanvas = ({
           
           {drawMode === 'area' && areaStart && areaEnd && (
             <rect
-              x={Math.min(areaStart.x, areaEnd.x)}
-              y={Math.min(areaStart.y, areaEnd.y)}
-              width={Math.abs(areaEnd.x - areaStart.x)}
-              height={Math.abs(areaEnd.y - areaStart.y)}
+              x={Math.min(areaStart.x, areaEnd.x) * displayScale}
+              y={Math.min(areaStart.y, areaEnd.y) * displayScale}
+              width={Math.abs(areaEnd.x - areaStart.x) * displayScale}
+              height={Math.abs(areaEnd.y - areaStart.y) * displayScale}
               fill="rgba(59, 130, 246, 0.2)"
               stroke="#3b82f6"
               strokeWidth="2"
@@ -316,7 +320,7 @@ const FloorCanvas = ({
           {editingRoomBorders && editPolygonPoints.length > 0 && (
             <>
               <polygon
-                points={editPolygonPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                points={editPolygonPoints.map(p => `${p.x * displayScale},${p.y * displayScale}`).join(' ')}
                 fill="#3b82f6"
                 fillOpacity="0.2"
                 stroke="#3b82f6"
@@ -326,16 +330,16 @@ const FloorCanvas = ({
               
               {editPolygonPoints.map((point, i) => {
                 const nextPoint = editPolygonPoints[(i + 1) % editPolygonPoints.length];
-                const midX = (point.x + nextPoint.x) / 2;
-                const midY = (point.y + nextPoint.y) / 2;
+                const midX = ((point.x + nextPoint.x) / 2) * displayScale;
+                const midY = ((point.y + nextPoint.y) / 2) * displayScale;
                 
                 return (
                   <g key={`edge-${i}`}>
                     <line
-                      x1={point.x}
-                      y1={point.y}
-                      x2={nextPoint.x}
-                      y2={nextPoint.y}
+                      x1={point.x * displayScale}
+                      y1={point.y * displayScale}
+                      x2={nextPoint.x * displayScale}
+                      y2={nextPoint.y * displayScale}
                       stroke="#3b82f6"
                       strokeWidth="2"
                     />
@@ -349,7 +353,7 @@ const FloorCanvas = ({
                       style={{ cursor: 'pointer' }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onAddEditPoint(i, midX, midY);
+                        onAddEditPoint(i, midX / displayScale, midY / displayScale);
                       }}
                     />
                   </g>
@@ -359,10 +363,10 @@ const FloorCanvas = ({
               {editPolygonPoints.map((point, i) => (
                 <DraggablePoint
                   key={`point-${i}`}
-                  x={point.x}
-                  y={point.y}
+                  x={point.x * displayScale}
+                  y={point.y * displayScale}
                   index={i}
-                  onDrag={onEditPointDrag}
+                  onDrag={(idx, newX, newY) => onEditPointDrag(idx, newX / displayScale, newY / displayScale)}
                   onDelete={onDeleteEditPoint}
                   scale={scale}
                   translateX={translateX}
