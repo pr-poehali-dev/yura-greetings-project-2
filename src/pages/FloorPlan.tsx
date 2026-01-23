@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import FloorCanvas from '@/components/hotel/FloorCanvas';
 
 interface Room {
   id: number;
@@ -41,7 +42,12 @@ const FloorPlan = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [floors, setFloors] = useState<Floor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imageDimensions, setImageDimensions] = useState({ width: 1280, height: 720 });
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const fetchFloors = async () => {
@@ -66,16 +72,6 @@ const FloorPlan = () => {
   }, []);
 
   const currentFloor = floors.find(f => f.floor_number === selectedFloor);
-
-  useEffect(() => {
-    if (currentFloor?.plan_image_url) {
-      const img = new Image();
-      img.onload = () => {
-        setImageDimensions({ width: img.width, height: img.height });
-      };
-      img.src = currentFloor.plan_image_url;
-    }
-  }, [currentFloor?.plan_image_url]);
   
   const floorRooms = currentFloor?.rooms.filter(room => {
     const matchesCategory = !categoryFilter || room.category === categoryFilter;
@@ -84,7 +80,8 @@ const FloorPlan = () => {
 
   const availableRooms = floorRooms.filter(r => r.status === 'available');
 
-  const handleRoomClick = (room: Room) => {
+  const handleRoomClick = (room: Room, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (room.status === 'available') {
       setSelectedRoom(room);
     }
@@ -94,6 +91,38 @@ const FloorPlan = () => {
     if (selectedRoom) {
       navigate(`/booking?checkIn=${checkInStr}&checkOut=${checkOutStr}&roomId=${selectedRoom.id}`);
     }
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  };
+
+  const handleMouseDownDrag = (e: React.MouseEvent) => {
+    if (scale === 1) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - translateX, y: e.clientY - translateY });
+    e.stopPropagation();
+  };
+
+  const handleMouseMoveDrag = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setTranslateX(e.clientX - dragStart.x);
+    setTranslateY(e.clientY - dragStart.y);
+    e.stopPropagation();
+  };
+
+  const handleMouseUpDrag = (e?: React.MouseEvent) => {
+    if (isDragging && e) {
+      e.stopPropagation();
+    }
+    setIsDragging(false);
+  };
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setImageDimensions({ width: img.offsetWidth, height: img.offsetHeight });
   };
 
   if (!checkIn || !checkOut) {
@@ -176,130 +205,32 @@ const FloorPlan = () => {
                     </div>
                   </div>
 
-                  <div className="relative bg-muted/30 rounded-lg overflow-auto" style={{ minHeight: '500px', maxHeight: '700px' }}>
-                    <div className="relative" style={{ width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` }}>
-                      <img
-                        src={currentFloor.plan_image_url}
-                        alt={`План ${currentFloor.floor_number} этажа`}
-                        className="pointer-events-none select-none"
-                        draggable="false"
-                        style={{ width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` }}
-                      />
-                      
-                      {floorRooms.map((room) => {
-                        const isSelected = selectedRoom?.id === room.id;
-                        const isAvailable = room.status === 'available';
-                        
-                        let color = isAvailable ? '#22c55e' : '#ef4444';
-                        
-                        if (isSelected) {
-                          color = 'hsl(var(--primary))';
-                        }
-                        
-                        if (room.polygon && room.polygon.length === 0) {
-                          return null;
-                        }
-                        
-                        if (!room.polygon || room.polygon.length === 0) {
-                          return (
-                            <div
-                              key={room.id}
-                              className="absolute rounded-lg flex items-center justify-center text-xs font-bold transition-all"
-                              style={{
-                                left: `${room.position_x}px`,
-                                top: `${room.position_y}px`,
-                                width: `${room.width || 60}px`,
-                                height: `${room.height || 40}px`,
-                                backgroundColor: color,
-                                color: 'white',
-                                opacity: isSelected ? 1 : 0.8,
-                                border: isSelected ? '3px solid white' : 'none',
-                                boxShadow: isSelected ? '0 0 15px rgba(255, 255, 255, 0.8)' : 'none',
-                                cursor: isAvailable ? 'pointer' : 'not-allowed',
-                                zIndex: isSelected ? 10 : 1
-                              }}
-                              onClick={() => handleRoomClick(room)}
-                              title={`${room.number} - ${room.category}`}
-                            >
-                              {room.number}
-                            </div>
-                          );
-                        }
-                        
-                        return null;
-                      })}
-                      
-                      <svg 
-                        className="absolute top-0 left-0"
-                        width={imageDimensions.width}
-                        height={imageDimensions.height}
-                        style={{ pointerEvents: 'none' }}
-                      >
-                        {floorRooms.map((room) => {
-                          const isSelected = selectedRoom?.id === room.id;
-                          const isAvailable = room.status === 'available';
-                          
-                          let color = isAvailable ? '#22c55e' : '#ef4444';
-                          
-                          if (isSelected) {
-                            color = 'hsl(var(--primary))';
-                          }
-                          
-                          if (room.polygon && room.polygon.length > 0) {
-                            const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
-                            const centerX = room.polygon.reduce((sum, p) => sum + p.x, 0) / room.polygon.length;
-                            const centerY = room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length;
-                            
-                            return (
-                              <g 
-                                key={room.id}
-                                style={{ pointerEvents: 'all', cursor: isAvailable ? 'pointer' : 'not-allowed' }}
-                                onClick={() => handleRoomClick(room)}
-                              >
-                                <polygon
-                                  points={points}
-                                  fill={color}
-                                  fillOpacity={isSelected ? "0.7" : "0.4"}
-                                  stroke={color}
-                                  strokeWidth="2"
-                                  className="transition-all hover:fill-opacity-60"
-                                />
-                                {isSelected && (
-                                  <polygon
-                                    points={points}
-                                    fill="none"
-                                    stroke="white"
-                                    strokeWidth="3"
-                                    style={{ filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))' }}
-                                  />
-                                )}
-                                <text
-                                  x={centerX}
-                                  y={centerY - 5}
-                                  textAnchor="middle"
-                                  className="text-xs font-bold fill-white pointer-events-none"
-                                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
-                                >
-                                  {room.number}
-                                </text>
-                                <text
-                                  x={centerX}
-                                  y={centerY + 12}
-                                  textAnchor="middle"
-                                  className="text-[10px] fill-white pointer-events-none"
-                                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
-                                >
-                                  {room.price} ₽
-                                </text>
-                              </g>
-                            );
-                          }
-                          
-                          return null;
-                        })}
-                      </svg>
-                    </div>
-                  </div>
+                  <FloorCanvas
+                    currentFloorData={currentFloor}
+                    isDrawing={false}
+                    drawMode="polygon"
+                    polygonPoints={[]}
+                    editingRoomBorders={null}
+                    editPolygonPoints={[]}
+                    selectedRoomId={selectedRoom?.id}
+                    areaStart={null}
+                    areaEnd={null}
+                    scale={scale}
+                    translateX={translateX}
+                    translateY={translateY}
+                    isDragging={isDragging}
+                    imageDimensions={imageDimensions}
+                    onCanvasClick={() => {}}
+                    onRoomClick={handleRoomClick}
+                    onEditPointDrag={() => {}}
+                    onAddEditPoint={() => {}}
+                    onDeleteEditPoint={() => {}}
+                    onWheel={handleWheel}
+                    onMouseDownDrag={handleMouseDownDrag}
+                    onMouseMoveDrag={handleMouseMoveDrag}
+                    onMouseUpDrag={handleMouseUpDrag}
+                    onImageLoad={handleImageLoad}
+                  />
                 </>
               ) : (
                 <div className="bg-muted/30 rounded-lg p-8 text-center">
