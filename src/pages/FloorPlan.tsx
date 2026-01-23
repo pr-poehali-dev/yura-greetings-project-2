@@ -176,13 +176,14 @@ const FloorPlan = () => {
                     </div>
                   </div>
 
-                  <div className="relative bg-muted/30 rounded-lg overflow-hidden" style={{ minHeight: '500px' }}>
-                    <div className="relative">
+                  <div className="relative bg-muted/30 rounded-lg overflow-auto" style={{ minHeight: '500px', maxHeight: '700px' }}>
+                    <div className="relative" style={{ width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` }}>
                       <img
                         src={currentFloor.plan_image_url}
                         alt={`План ${currentFloor.floor_number} этажа`}
-                        className="w-full h-auto pointer-events-none select-none"
+                        className="pointer-events-none select-none"
                         draggable="false"
+                        style={{ width: `${imageDimensions.width}px`, height: `${imageDimensions.height}px` }}
                       />
                       
                       {floorRooms.map((room) => {
@@ -229,7 +230,9 @@ const FloorPlan = () => {
                       })}
                       
                       <svg 
-                        className="absolute top-0 left-0 w-full h-full"
+                        className="absolute top-0 left-0"
+                        width={imageDimensions.width}
+                        height={imageDimensions.height}
                         style={{ pointerEvents: 'none' }}
                       >
                         {floorRooms.map((room) => {
