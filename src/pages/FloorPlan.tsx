@@ -176,117 +176,126 @@ const FloorPlan = () => {
                     </div>
                   </div>
 
-                  <div className="relative bg-muted/30 rounded-lg overflow-hidden">
-                    <svg
-                      width="100%"
-                      viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}
-                      className="w-full h-auto"
-                      style={{ maxHeight: '600px' }}
-                      preserveAspectRatio="xMidYMid meet"
-                    >
-                      <image
-                        href={currentFloor.plan_image_url}
-                        width={imageDimensions.width}
-                        height={imageDimensions.height}
-                        opacity="0.9"
+                  <div className="relative bg-muted/30 rounded-lg overflow-hidden" style={{ minHeight: '500px' }}>
+                    <div className="relative">
+                      <img
+                        src={currentFloor.plan_image_url}
+                        alt={`План ${currentFloor.floor_number} этажа`}
+                        className="w-full h-auto pointer-events-none select-none"
+                        draggable="false"
                       />
+                      
                       {floorRooms.map((room) => {
                         const isSelected = selectedRoom?.id === room.id;
                         const isAvailable = room.status === 'available';
                         
-                        let fillColor = isAvailable ? '#22c55e' : '#ef4444';
-                        let strokeColor = isAvailable ? '#16a34a' : '#dc2626';
-                        let opacity = 0.3;
+                        let color = isAvailable ? '#22c55e' : '#ef4444';
                         
                         if (isSelected) {
-                          fillColor = 'hsl(var(--primary))';
-                          strokeColor = 'hsl(var(--primary))';
-                          opacity = 0.5;
+                          color = 'hsl(var(--primary))';
                         }
                         
-                        if (room.polygon) {
-                          const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
-                          
-                          return (
-                            <g
-                              key={room.id}
-                              onClick={() => handleRoomClick(room)}
-                              className={isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
-                              style={{ transition: 'all 0.2s' }}
-                            >
-                              <polygon
-                                points={points}
-                                fill={fillColor}
-                                stroke={strokeColor}
-                                strokeWidth="2"
-                                opacity={opacity}
-                                className="hover:opacity-60"
-                              />
-                              <text
-                                x={room.position_x}
-                                y={room.position_y - 10}
-                                textAnchor="middle"
-                                className="text-xs font-bold fill-foreground pointer-events-none"
-                              >
-                                {room.number}
-                              </text>
-                              <text
-                                x={room.position_x}
-                                y={room.position_y + 10}
-                                textAnchor="middle"
-                                className="text-[10px] fill-muted-foreground pointer-events-none"
-                              >
-                                {room.price} ₽
-                              </text>
-                            </g>
-                          );
+                        if (room.polygon && room.polygon.length === 0) {
+                          return null;
                         }
                         
-                        if (room.width && room.height) {
-                          const x = room.position_x;
-                          const y = room.position_y;
-                          
+                        if (!room.polygon || room.polygon.length === 0) {
                           return (
-                            <g
+                            <div
                               key={room.id}
+                              className="absolute rounded-lg flex items-center justify-center text-xs font-bold transition-all"
+                              style={{
+                                left: `${room.position_x}px`,
+                                top: `${room.position_y}px`,
+                                width: `${room.width || 60}px`,
+                                height: `${room.height || 40}px`,
+                                backgroundColor: color,
+                                color: 'white',
+                                opacity: isSelected ? 1 : 0.8,
+                                border: isSelected ? '3px solid white' : 'none',
+                                boxShadow: isSelected ? '0 0 15px rgba(255, 255, 255, 0.8)' : 'none',
+                                cursor: isAvailable ? 'pointer' : 'not-allowed',
+                                zIndex: isSelected ? 10 : 1
+                              }}
                               onClick={() => handleRoomClick(room)}
-                              className={isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
+                              title={`${room.number} - ${room.category}`}
                             >
-                              <rect
-                                x={x}
-                                y={y}
-                                width={room.width}
-                                height={room.height}
-                                fill={fillColor}
-                                stroke={strokeColor}
-                                strokeWidth="2"
-                                opacity={opacity}
-                                rx="4"
-                                className="hover:opacity-60"
-                              />
-                              <text
-                                x={x + room.width / 2}
-                                y={y + room.height / 2 - 5}
-                                textAnchor="middle"
-                                className="text-sm font-bold fill-foreground pointer-events-none"
-                              >
-                                {room.number}
-                              </text>
-                              <text
-                                x={x + room.width / 2}
-                                y={y + room.height / 2 + 12}
-                                textAnchor="middle"
-                                className="text-xs fill-muted-foreground pointer-events-none"
-                              >
-                                {room.price} ₽
-                              </text>
-                            </g>
+                              {room.number}
+                            </div>
                           );
                         }
                         
                         return null;
                       })}
-                    </svg>
+                      
+                      <svg 
+                        className="absolute top-0 left-0 w-full h-full"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {floorRooms.map((room) => {
+                          const isSelected = selectedRoom?.id === room.id;
+                          const isAvailable = room.status === 'available';
+                          
+                          let color = isAvailable ? '#22c55e' : '#ef4444';
+                          
+                          if (isSelected) {
+                            color = 'hsl(var(--primary))';
+                          }
+                          
+                          if (room.polygon && room.polygon.length > 0) {
+                            const points = room.polygon.map(p => `${p.x},${p.y}`).join(' ');
+                            const centerX = room.polygon.reduce((sum, p) => sum + p.x, 0) / room.polygon.length;
+                            const centerY = room.polygon.reduce((sum, p) => sum + p.y, 0) / room.polygon.length;
+                            
+                            return (
+                              <g 
+                                key={room.id}
+                                style={{ pointerEvents: 'all', cursor: isAvailable ? 'pointer' : 'not-allowed' }}
+                                onClick={() => handleRoomClick(room)}
+                              >
+                                <polygon
+                                  points={points}
+                                  fill={color}
+                                  fillOpacity={isSelected ? "0.7" : "0.4"}
+                                  stroke={color}
+                                  strokeWidth="2"
+                                  className="transition-all hover:fill-opacity-60"
+                                />
+                                {isSelected && (
+                                  <polygon
+                                    points={points}
+                                    fill="none"
+                                    stroke="white"
+                                    strokeWidth="3"
+                                    style={{ filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))' }}
+                                  />
+                                )}
+                                <text
+                                  x={centerX}
+                                  y={centerY - 5}
+                                  textAnchor="middle"
+                                  className="text-xs font-bold fill-white pointer-events-none"
+                                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
+                                >
+                                  {room.number}
+                                </text>
+                                <text
+                                  x={centerX}
+                                  y={centerY + 12}
+                                  textAnchor="middle"
+                                  className="text-[10px] fill-white pointer-events-none"
+                                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}
+                                >
+                                  {room.price} ₽
+                                </text>
+                              </g>
+                            );
+                          }
+                          
+                          return null;
+                        })}
+                      </svg>
+                    </div>
                   </div>
                 </>
               ) : (
