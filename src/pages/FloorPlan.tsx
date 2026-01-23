@@ -72,6 +72,16 @@ const FloorPlan = () => {
     fetchFloors();
   }, []);
 
+  useEffect(() => {
+    if (!currentFloor?.plan_image_url) return;
+    
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.src = currentFloor.plan_image_url;
+  }, [selectedFloor, floors]);
+
   const currentFloor = floors.find(f => f.floor_number === selectedFloor);
   
   const floorRooms = currentFloor?.rooms.filter(room => {

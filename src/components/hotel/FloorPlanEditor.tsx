@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import FloorToolbar from './FloorToolbar';
@@ -106,6 +106,16 @@ const FloorPlanEditor = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const currentFloorData = floors.find(f => f.id === currentFloor);
+
+  useEffect(() => {
+    if (!currentFloorData?.plan_image_url) return;
+    
+    const img = new Image();
+    img.onload = () => {
+      setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.src = currentFloorData.plan_image_url;
+  }, [currentFloorData?.plan_image_url]);
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (editingRoomBorders) return;
