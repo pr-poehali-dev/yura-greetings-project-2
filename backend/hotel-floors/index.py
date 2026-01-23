@@ -69,7 +69,7 @@ def handler(event: dict, context) -> dict:
                 
                 room_obj = {
                     'id': room_id,
-                    'number': room_number,
+                    'room_number': room_number,
                     'category': category,
                     'price': float(price),
                     'position_x': float(pos_x),
@@ -77,7 +77,8 @@ def handler(event: dict, context) -> dict:
                     'status': status,
                     'width': width,
                     'height': height,
-                    'polygon': json.loads(polygon) if polygon else None
+                    'polygon': json.loads(polygon) if polygon else None,
+                    'floor_id': floor_id
                 }
                 rooms.append(room_obj)
             

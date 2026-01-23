@@ -9,15 +9,16 @@ import FloorCanvas from '@/components/hotel/FloorCanvas';
 
 interface Room {
   id: number;
-  number: string;
+  room_number: string;
   category: string;
   price: number;
   position_x: number;
   position_y: number;
   status: string;
-  width: number | null;
-  height: number | null;
-  polygon: Array<{ x: number; y: number }> | null;
+  width?: number;
+  height?: number;
+  polygon?: Array<{ x: number; y: number }>;
+  floor_id: number;
 }
 
 interface Floor {
@@ -190,22 +191,58 @@ const FloorPlan = () => {
                 </div>
               ) : currentFloor?.plan_image_url ? (
                 <>
-                  <div className="text-xs text-muted-foreground mb-4 flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-green-500"></div>
-                      <span>Свободен</span>
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-green-500"></div>
+                        <span>Свободен</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-red-500"></div>
+                        <span>Занят</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded border-2 border-primary bg-primary/50"></div>
+                        <span>Выбран</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-red-500"></div>
-                      <span>Занят</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded border-2 border-primary bg-primary/50"></div>
-                      <span>Выбран</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setScale(prev => Math.max(0.5, prev - 0.2))}
+                        disabled={scale <= 0.5}
+                      >
+                        <Icon name="ZoomOut" size={16} />
+                      </Button>
+                      <span className="text-xs text-muted-foreground min-w-[3rem] text-center">
+                        {Math.round(scale * 100)}%
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setScale(prev => Math.min(3, prev + 0.2))}
+                        disabled={scale >= 3}
+                      >
+                        <Icon name="ZoomIn" size={16} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setScale(1);
+                          setTranslateX(0);
+                          setTranslateY(0);
+                        }}
+                        disabled={scale === 1}
+                      >
+                        <Icon name="Maximize2" size={16} />
+                      </Button>
                     </div>
                   </div>
 
-                  <FloorCanvas
+                  <div className="relative">
+                    <FloorCanvas
                     currentFloorData={currentFloor}
                     isDrawing={false}
                     drawMode="polygon"
@@ -231,6 +268,11 @@ const FloorPlan = () => {
                     onMouseUpDrag={handleMouseUpDrag}
                     onImageLoad={handleImageLoad}
                   />
+                    <div className="mt-3 text-xs text-muted-foreground text-center">
+                      <Icon name="Info" size={14} className="inline mr-1" />
+                      Используйте колесо мыши для масштабирования • При увеличении перетаскивайте схему мышью
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="bg-muted/30 rounded-lg p-8 text-center">
@@ -252,7 +294,7 @@ const FloorPlan = () => {
                 
                 <div className="space-y-4">
                   <div>
-                    <div className="text-3xl font-bold text-primary">№ {selectedRoom.number}</div>
+                    <div className="text-3xl font-bold text-primary">№ {selectedRoom.room_number}</div>
                     <div className="text-muted-foreground">{selectedRoom.category}</div>
                   </div>
 
