@@ -6,20 +6,19 @@ import Icon from '@/components/ui/icon';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
-interface RoomOnFloor {
-  id: string;
-  number: string;
-  floor: number;
+interface AvailableRoom {
   category: string;
   price: number;
-  isAvailable: boolean;
+  count: number;
+  description: string;
 }
 
 const Rooms = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [rooms, setRooms] = useState<RoomOnFloor[]>([]);
+  const [rooms, setRooms] = useState<AvailableRoom[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const checkInStr = searchParams.get('checkIn');
   const checkOutStr = searchParams.get('checkOut');
@@ -28,39 +27,46 @@ const Rooms = () => {
   const checkOut = checkOutStr ? new Date(checkOutStr) : null;
 
   useEffect(() => {
-    const fetchRooms = async () => {
+    const fetchAvailableRooms = async () => {
       setLoading(true);
       
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      const mockRooms: RoomOnFloor[] = [
-        { id: '101', number: '101', floor: 1, category: 'Стандарт', price: 3500, isAvailable: true },
-        { id: '102', number: '102', floor: 1, category: 'Стандарт', price: 3500, isAvailable: true },
-        { id: '103', number: '103', floor: 1, category: 'Стандарт', price: 3500, isAvailable: false },
-        { id: '104', number: '104', floor: 1, category: 'Комфорт', price: 5000, isAvailable: true },
-        { id: '201', number: '201', floor: 2, category: 'Комфорт', price: 5000, isAvailable: true },
-        { id: '202', number: '202', floor: 2, category: 'Комфорт', price: 5000, isAvailable: true },
-        { id: '203', number: '203', floor: 2, category: 'Люкс', price: 8500, isAvailable: true },
-        { id: '301', number: '301', floor: 3, category: 'Люкс', price: 8500, isAvailable: true },
-        { id: '302', number: '302', floor: 3, category: 'Люкс', price: 8500, isAvailable: false },
+      const mockAvailableRooms: AvailableRoom[] = [
+        { 
+          category: 'Стандарт', 
+          price: 3500, 
+          count: 5, 
+          description: 'Уютный номер с одной двуспальной кроватью, ванной комнатой и телевизором' 
+        },
+        { 
+          category: 'Комфорт', 
+          price: 5000, 
+          count: 3, 
+          description: 'Просторный номер с улучшенной мебелью, мини-баром и рабочей зоной' 
+        },
+        { 
+          category: 'Люкс', 
+          price: 8500, 
+          count: 2, 
+          description: 'Премиум номер с отдельной гостиной, джакузи и панорамным видом' 
+        },
       ];
       
-      setRooms(mockRooms);
+      setRooms(mockAvailableRooms);
       setLoading(false);
     };
 
-    fetchRooms();
+    fetchAvailableRooms();
   }, [checkInStr, checkOutStr]);
 
-  const handleRoomSelect = (roomId: string) => {
-    navigate(`/floorplan?checkIn=${checkInStr}&checkOut=${checkOutStr}&room=${roomId}`);
+  const handleViewFloorPlan = (category: string) => {
+    navigate(`/floorplan?checkIn=${checkInStr}&checkOut=${checkOutStr}&category=${category}`);
   };
 
-  const groupedByFloor = rooms.reduce((acc, room) => {
-    if (!acc[room.floor]) acc[room.floor] = [];
-    acc[room.floor].push(room);
-    return acc;
-  }, {} as Record<number, RoomOnFloor[]>);
+  const handleBookDirect = (category: string) => {
+    navigate(`/booking?checkIn=${checkInStr}&checkOut=${checkOutStr}&category=${category}`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,7 +81,7 @@ const Rooms = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         {checkIn && checkOut && (
           <Card className="p-6 mb-8">
             <div className="flex items-center justify-center gap-8 text-center">
@@ -92,9 +98,9 @@ const Rooms = () => {
           </Card>
         )}
 
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Выберите номер на схеме</h2>
-          <p className="text-muted-foreground">Доступные номера на выбранные даты</p>
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold mb-2">Доступные номера</h2>
+          <p className="text-muted-foreground">Выберите категорию номера для бронирования</p>
         </div>
 
         {loading ? (
@@ -102,56 +108,61 @@ const Rooms = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="space-y-8">
-            {Object.keys(groupedByFloor).sort((a, b) => Number(b) - Number(a)).map((floor) => (
-              <div key={floor}>
-                <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Icon name="Building" size={24} className="text-primary" />
-                  {floor} этаж
-                </h3>
-                
-                <div className="grid md:grid-cols-4 gap-4">
-                  {groupedByFloor[Number(floor)].map((room) => (
-                    <Card 
-                      key={room.id}
-                      className={`p-6 cursor-pointer transition-all ${
-                        room.isAvailable 
-                          ? 'hover:shadow-lg hover:border-primary' 
-                          : 'opacity-50 cursor-not-allowed'
-                      }`}
-                      onClick={() => room.isAvailable && handleRoomSelect(room.id)}
-                    >
-                      <div className="text-center space-y-3">
-                        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${
-                          room.isAvailable ? 'bg-primary/10' : 'bg-muted'
-                        }`}>
-                          <Icon 
-                            name={room.isAvailable ? 'Home' : 'Lock'} 
-                            size={32} 
-                            className={room.isAvailable ? 'text-primary' : 'text-muted-foreground'} 
-                          />
-                        </div>
-                        
-                        <div>
-                          <div className="text-2xl font-bold">№ {room.number}</div>
-                          <div className="text-sm text-muted-foreground">{room.category}</div>
-                        </div>
-                        
-                        <div className="pt-3 border-t">
-                          <div className="text-xl font-bold text-primary">{room.price} ₽</div>
-                          <div className="text-xs text-muted-foreground">за ночь</div>
-                        </div>
-                        
-                        <div className={`text-sm font-medium ${
-                          room.isAvailable ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {room.isAvailable ? '✓ Доступен' : '✗ Занят'}
-                        </div>
+          <div className="space-y-6">
+            {rooms.map((room) => (
+              <Card 
+                key={room.category}
+                className={`p-6 transition-all ${
+                  selectedCategory === room.category ? 'border-primary shadow-lg' : ''
+                }`}
+              >
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div className="md:w-1/4 flex items-center justify-center">
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Icon name="Home" size={48} className="text-primary" />
+                    </div>
+                  </div>
+                  
+                  <div className="md:w-3/4 space-y-4">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-2">{room.category}</h3>
+                      <p className="text-muted-foreground">{room.description}</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Icon name="Check" size={16} className="text-green-600" />
+                        <span className="font-medium text-green-600">
+                          Доступно: {room.count} {room.count === 1 ? 'номер' : 'номера'}
+                        </span>
                       </div>
-                    </Card>
-                  ))}
+                    </div>
+                    
+                    <div className="flex items-end justify-between pt-4 border-t">
+                      <div>
+                        <div className="text-3xl font-bold text-primary">{room.price} ₽</div>
+                        <div className="text-sm text-muted-foreground">за ночь</div>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleViewFloorPlan(room.category)}
+                        >
+                          <Icon name="Map" size={16} className="mr-2" />
+                          Выбрать на плане
+                        </Button>
+                        <Button
+                          onClick={() => handleBookDirect(room.category)}
+                        >
+                          <Icon name="Calendar" size={16} className="mr-2" />
+                          Забронировать
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

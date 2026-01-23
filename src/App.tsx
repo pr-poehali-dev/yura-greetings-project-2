@@ -11,6 +11,7 @@ import HotelAdmin from "./pages/HotelAdmin";
 import HotelDashboard from "./pages/HotelDashboard";
 import Rooms from "./pages/Rooms";
 import FloorPlan from "./pages/FloorPlan";
+import Booking from "./pages/Booking";
 import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/hotel" element={<Hotel />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/floorplan" element={<FloorPlan />} />
+          <Route path="/booking" element={<Booking />} />
           <Route path="/payment" element={<Payment />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
