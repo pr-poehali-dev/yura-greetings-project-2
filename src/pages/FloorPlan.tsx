@@ -41,6 +41,7 @@ const FloorPlan = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [floors, setFloors] = useState<Floor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageDimensions, setImageDimensions] = useState({ width: 1280, height: 720 });
 
   useEffect(() => {
     const fetchFloors = async () => {
@@ -63,6 +64,16 @@ const FloorPlan = () => {
 
     fetchFloors();
   }, []);
+
+  useEffect(() => {
+    if (currentFloor?.plan_image_url) {
+      const img = new Image();
+      img.onload = () => {
+        setImageDimensions({ width: img.width, height: img.height });
+      };
+      img.src = currentFloor.plan_image_url;
+    }
+  }, [currentFloor?.plan_image_url]);
 
   const currentFloor = floors.find(f => f.floor_number === selectedFloor);
   
@@ -168,14 +179,15 @@ const FloorPlan = () => {
                   <div className="relative bg-muted/30 rounded-lg overflow-hidden">
                     <svg
                       width="100%"
-                      viewBox="0 0 1280 720"
+                      viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}
                       className="w-full h-auto"
                       style={{ maxHeight: '600px' }}
+                      preserveAspectRatio="xMidYMid meet"
                     >
                       <image
                         href={currentFloor.plan_image_url}
-                        width="1280"
-                        height="720"
+                        width={imageDimensions.width}
+                        height={imageDimensions.height}
                         opacity="0.9"
                       />
                       {floorRooms.map((room) => {
