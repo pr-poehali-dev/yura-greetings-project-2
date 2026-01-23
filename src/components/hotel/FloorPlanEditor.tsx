@@ -175,6 +175,12 @@ const FloorPlanEditor = ({
             onCancelArea={onCancelArea}
           />
 
+          <div className="mb-2 p-2 bg-blue-100 dark:bg-blue-900 rounded text-xs">
+            <strong>Отладка (Админ):</strong> Размеры изображения: {imageDimensions.width} × {imageDimensions.height}px | 
+            Масштаб: {Math.round(scale * 100)}% | 
+            Номеров: {currentFloorData.rooms.length}
+          </div>
+
           <FloorCanvas
             currentFloorData={currentFloorData}
             isDrawing={isDrawing}

@@ -242,6 +242,11 @@ const FloorPlan = () => {
                   </div>
 
                   <div className="relative">
+                    <div className="mb-2 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
+                      <strong>Отладка:</strong> Размеры изображения: {imageDimensions.width} × {imageDimensions.height}px | 
+                      Масштаб: {Math.round(scale * 100)}% | 
+                      Номеров на этаже: {floorRooms.length}
+                    </div>
                     <FloorCanvas
                     currentFloorData={currentFloor}
                     isDrawing={false}
