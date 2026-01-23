@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import DraggablePoint from './DraggablePoint';
 
 interface Room {
@@ -82,11 +82,31 @@ const FloorCanvas = ({
   onImageLoad
 }: FloorCanvasProps) => {
   const [hoveredRoomId, setHoveredRoomId] = useState<number | null>(null);
+  const [displayScale, setDisplayScale] = useState(1);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const displayScale = imgRef.current && imageDimensions.width > 0
-    ? imgRef.current.offsetWidth / imageDimensions.width
-    : 1;
+  const updateDisplayScale = () => {
+    if (imgRef.current && imageDimensions.width > 0) {
+      const newScale = imgRef.current.offsetWidth / imageDimensions.width;
+      console.log('[FloorCanvas] updateDisplayScale:', {
+        offsetWidth: imgRef.current.offsetWidth,
+        naturalWidth: imageDimensions.width,
+        displayScale: newScale
+      });
+      setDisplayScale(newScale);
+    } else {
+      console.log('[FloorCanvas] updateDisplayScale SKIP:', {
+        hasImgRef: !!imgRef.current,
+        imageWidth: imageDimensions.width
+      });
+    }
+  };
+
+  useEffect(() => {
+    updateDisplayScale();
+    window.addEventListener('resize', updateDisplayScale);
+    return () => window.removeEventListener('resize', updateDisplayScale);
+  }, [imageDimensions]);
 
   return (
     <div
@@ -153,7 +173,10 @@ const FloorCanvas = ({
           alt={`План ${currentFloorData.floor_number} этажа`}
           className="w-full h-auto pointer-events-none select-none"
           draggable="false"
-          onLoad={onImageLoad}
+          onLoad={(e) => {
+            onImageLoad(e);
+            updateDisplayScale();
+          }}
         />
       
         {currentFloorData.rooms.map(room => {
