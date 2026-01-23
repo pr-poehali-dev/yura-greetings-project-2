@@ -65,6 +65,8 @@ const FloorPlan = () => {
     fetchFloors();
   }, []);
 
+  const currentFloor = floors.find(f => f.floor_number === selectedFloor);
+
   useEffect(() => {
     if (currentFloor?.plan_image_url) {
       const img = new Image();
@@ -74,8 +76,6 @@ const FloorPlan = () => {
       img.src = currentFloor.plan_image_url;
     }
   }, [currentFloor?.plan_image_url]);
-
-  const currentFloor = floors.find(f => f.floor_number === selectedFloor);
   
   const floorRooms = currentFloor?.rooms.filter(room => {
     const matchesCategory = !categoryFilter || room.category === categoryFilter;
