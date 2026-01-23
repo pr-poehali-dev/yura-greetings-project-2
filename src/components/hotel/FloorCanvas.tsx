@@ -149,10 +149,7 @@ const FloorCanvas = ({
           alt={`План ${currentFloorData.floor_number} этажа`}
           className="w-full h-auto pointer-events-none select-none"
           draggable="false"
-          onLoad={(e) => {
-            onImageLoad(e);
-            updateDisplayScale();
-          }}
+          onLoad={onImageLoad}
         />
       
         {currentFloorData.rooms.map(room => {
