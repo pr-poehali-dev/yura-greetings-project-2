@@ -57,6 +57,7 @@ interface Room {
   height?: number;
   polygon?: Array<{x: number, y: number}>;
   status: string;
+  media?: Array<{type: 'image' | 'video', url: string, order: number}>;
   created_at: string;
   updated_at: string;
 }

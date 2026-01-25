@@ -111,6 +111,11 @@ def handler(event: dict, context) -> dict:
                     room_dict = dict(r)
                     if room_dict.get('polygon'):
                         room_dict['polygon'] = json.loads(room_dict['polygon'])
+                    if room_dict.get('media'):
+                        if isinstance(room_dict['media'], str):
+                            room_dict['media'] = json.loads(room_dict['media'])
+                    else:
+                        room_dict['media'] = []
                     rooms_list.append(room_dict)
                 return success_response(rooms_list)
             
@@ -132,6 +137,11 @@ def handler(event: dict, context) -> dict:
                     room_dict = dict(room)
                     if room_dict.get('polygon'):
                         room_dict['polygon'] = json.loads(room_dict['polygon'])
+                    if room_dict.get('media'):
+                        if isinstance(room_dict['media'], str):
+                            room_dict['media'] = json.loads(room_dict['media'])
+                    else:
+                        room_dict['media'] = []
                     return success_response(room_dict)
                 except Exception as e:
                     conn.rollback()
@@ -144,20 +154,26 @@ def handler(event: dict, context) -> dict:
                 data = json.loads(event.get('body', '{}'))
                 room_id = data.get('id')
                 polygon_json = json.dumps(data.get('polygon')) if data.get('polygon') else None
+                media_json = json.dumps(data.get('media')) if data.get('media') else None
                 cur.execute(
                     '''UPDATE rooms SET room_number = %s, category = %s, price = %s, 
                        position_x = %s, position_y = %s, width = %s, height = %s, polygon = %s,
-                       status = %s, updated_at = CURRENT_TIMESTAMP 
+                       status = %s, media = %s, updated_at = CURRENT_TIMESTAMP 
                        WHERE id = %s RETURNING *''',
                     (data['room_number'], data['category'], data['price'], 
                      data['position_x'], data['position_y'], data.get('width'), data.get('height'),
-                     polygon_json, data['status'], room_id)
+                     polygon_json, data['status'], media_json, room_id)
                 )
                 conn.commit()
                 room = cur.fetchone()
                 room_dict = dict(room)
                 if room_dict.get('polygon'):
                     room_dict['polygon'] = json.loads(room_dict['polygon'])
+                if room_dict.get('media'):
+                    if isinstance(room_dict['media'], str):
+                        room_dict['media'] = json.loads(room_dict['media'])
+                else:
+                    room_dict['media'] = []
                 return success_response(room_dict)
             
             elif method == 'DELETE':

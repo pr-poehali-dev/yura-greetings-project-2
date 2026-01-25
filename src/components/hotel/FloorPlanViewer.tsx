@@ -5,6 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import * as hotelApi from '@/lib/hotelApi';
 import { useToast } from '@/hooks/use-toast';
+import RoomMediaModal from './RoomMediaModal';
+
+interface MediaItem {
+  type: 'image' | 'video';
+  url: string;
+  order: number;
+}
 
 interface Room {
   id: number;
@@ -18,6 +25,7 @@ interface Room {
   category: string;
   price: number;
   status: string;
+  media?: MediaItem[];
 }
 
 interface Floor {
@@ -43,6 +51,7 @@ const FloorPlanViewer = ({ onRoomSelect }: FloorPlanViewerProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
 
@@ -140,6 +149,11 @@ const FloorPlanViewer = ({ onRoomSelect }: FloorPlanViewerProps) => {
     }
     
     setSelectedRoomId(room.id);
+    setViewingRoom(room);
+  };
+
+  const handleSelectRoom = (room: Room) => {
+    setViewingRoom(null);
     onRoomSelect(room);
   };
 
@@ -328,6 +342,12 @@ const FloorPlanViewer = ({ onRoomSelect }: FloorPlanViewerProps) => {
           </div>
         </div>
       </Card>
+
+      <RoomMediaModal 
+        room={viewingRoom} 
+        onClose={() => setViewingRoom(null)} 
+        onSelect={handleSelectRoom}
+      />
     </div>
   );
 };
