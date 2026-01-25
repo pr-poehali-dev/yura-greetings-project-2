@@ -155,6 +155,7 @@ def handler(event: dict, context) -> dict:
                 room_id = data.get('id')
                 polygon_json = json.dumps(data.get('polygon')) if data.get('polygon') else None
                 media_json = json.dumps(data.get('media')) if data.get('media') else None
+                print(f"Updating room {room_id} with media: {media_json}")
                 cur.execute(
                     '''UPDATE rooms SET room_number = %s, category = %s, price = %s, 
                        position_x = %s, position_y = %s, width = %s, height = %s, polygon = %s,

@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import * as hotelApi from '@/lib/hotelApi';
 
+interface MediaItem {
+  type: 'image' | 'video';
+  url: string;
+  order: number;
+}
+
 interface Room {
   id: number;
   room_number: string;
@@ -13,6 +19,7 @@ interface Room {
   category: string;
   price: number;
   status: string;
+  media?: MediaItem[];
 }
 
 interface Floor {
@@ -132,6 +139,7 @@ export const useRoomEditing = (
 
     try {
       setLoading(true);
+      console.log('Updating room with media:', selectedRoom.media);
       const updatedRoomData = await hotelApi.updateRoom({
         id: selectedRoom.id,
         room_number: selectedRoom.room_number,
@@ -142,8 +150,10 @@ export const useRoomEditing = (
         width: selectedRoom.width,
         height: selectedRoom.height,
         polygon: selectedRoom.polygon,
-        status: selectedRoom.status
+        status: selectedRoom.status,
+        media: selectedRoom.media
       });
+      console.log('Room updated, received:', updatedRoomData.media);
 
       setFloors(floors.map(floor =>
         floor.id === selectedRoom.floor_id

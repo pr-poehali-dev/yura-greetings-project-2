@@ -196,6 +196,7 @@ export async function updateRoom(room: {
   height?: number;
   polygon?: Array<{x: number, y: number}>;
   status: string;
+  media?: Array<{type: 'image' | 'video', url: string, order: number}>;
 }): Promise<Room> {
   const response = await fetch(API_URL, {
     method: 'PUT',
