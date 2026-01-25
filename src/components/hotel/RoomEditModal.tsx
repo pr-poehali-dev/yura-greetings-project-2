@@ -47,6 +47,7 @@ const RoomEditModal = ({
   onEditBorders
 }: RoomEditModalProps) => {
   const [uploading, setUploading] = useState(false);
+  const [viewingMedia, setViewingMedia] = useState<number | null>(null);
   const { toast } = useToast();
 
   if (!selectedRoom) return null;
@@ -215,7 +216,10 @@ const RoomEditModal = ({
                 <div className="grid grid-cols-3 gap-3 mt-4">
                   {media.map((item, index) => (
                     <div key={index} className="relative group border rounded-lg overflow-hidden bg-muted/50 hover:bg-muted transition-colors">
-                      <div className="relative aspect-square">
+                      <div 
+                        className="relative aspect-square cursor-pointer"
+                        onClick={() => setViewingMedia(index)}
+                      >
                         {item.type === 'image' ? (
                           <img 
                             src={item.url} 
@@ -236,6 +240,10 @@ const RoomEditModal = ({
                         
                         <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
                           {index + 1}
+                        </div>
+                        
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Icon name="Maximize2" size={24} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
                       
@@ -307,6 +315,71 @@ const RoomEditModal = ({
           </Button>
         </div>
       </Card>
+
+      {viewingMedia !== null && media[viewingMedia] && (
+        <div 
+          className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4"
+          onClick={() => setViewingMedia(null)}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-white hover:bg-white/20"
+            onClick={() => setViewingMedia(null)}
+          >
+            <Icon name="X" size={24} />
+          </Button>
+
+          {viewingMedia > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewingMedia(viewingMedia - 1);
+              }}
+            >
+              <Icon name="ChevronLeft" size={32} />
+            </Button>
+          )}
+
+          {viewingMedia < media.length - 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewingMedia(viewingMedia + 1);
+              }}
+            >
+              <Icon name="ChevronRight" size={32} />
+            </Button>
+          )}
+
+          <div className="max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+            {media[viewingMedia].type === 'image' ? (
+              <img 
+                src={media[viewingMedia].url} 
+                alt={`Фото ${viewingMedia + 1}`} 
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <video 
+                src={media[viewingMedia].url} 
+                controls 
+                autoPlay
+                className="w-full h-full object-contain"
+              />
+            )}
+            
+            <div className="text-center text-white mt-4">
+              {viewingMedia + 1} / {media.length}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
