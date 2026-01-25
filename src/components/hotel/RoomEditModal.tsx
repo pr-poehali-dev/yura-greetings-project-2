@@ -56,7 +56,7 @@ const RoomEditModal = ({
           <div>
             <label className="block text-sm font-medium mb-2">Категория</label>
             <select
-              className="w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               value={selectedRoom.category}
               onChange={(e) => onChange({ ...selectedRoom, category: e.target.value })}
               disabled={loading}
@@ -81,7 +81,7 @@ const RoomEditModal = ({
           <div>
             <label className="block text-sm font-medium mb-2">Статус</label>
             <select
-              className="w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               value={selectedRoom.status}
               onChange={(e) => onChange({ ...selectedRoom, status: e.target.value })}
               disabled={loading}
