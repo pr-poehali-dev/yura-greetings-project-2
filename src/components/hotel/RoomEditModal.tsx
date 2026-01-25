@@ -55,11 +55,17 @@ const RoomEditModal = ({
 
           <div>
             <label className="block text-sm font-medium mb-2">Категория</label>
-            <Input
+            <select
+              className="w-full px-3 py-2 border rounded-md"
               value={selectedRoom.category}
               onChange={(e) => onChange({ ...selectedRoom, category: e.target.value })}
               disabled={loading}
-            />
+            >
+              <option value="Стандарт">Стандарт</option>
+              <option value="Комфорт">Комфорт</option>
+              <option value="Люкс">Люкс</option>
+              <option value="Президентский">Президентский</option>
+            </select>
           </div>
 
           <div>
