@@ -43,7 +43,6 @@ const FloorPlan = () => {
   const [floors, setFloors] = useState<Floor[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageRef, setImageRef] = useState<HTMLDivElement | null>(null);
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     const fetchFloors = async () => {
@@ -190,60 +189,50 @@ const FloorPlan = () => {
                       src={currentFloor.plan_image_url}
                       alt={`План ${currentFloor.floor_number} этажа`}
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                      onLoad={(e) => {
-                        const img = e.currentTarget;
-                        setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
-                      }}
                     />
 
-                    {imageDimensions.width > 0 && (
-                      <svg
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}
-                        preserveAspectRatio="xMidYMid meet"
-                      >
-                        {floorRooms.map(room => {
-                          if (!room.polygon || room.polygon.length < 3) return null;
+                    {floorRooms.map(room => {
+                      if (!room.polygon || room.polygon.length < 3) return null;
 
-                          const color = room.status === 'available' ? '#22c55e' : 
-                                       room.status === 'occupied' ? '#ef4444' : '#94a3b8';
-                          
-                          const isSelected = selectedRoom?.id === room.id;
+                      const color = room.status === 'available' ? '#22c55e' : 
+                                   room.status === 'occupied' ? '#ef4444' : '#94a3b8';
+                      
+                      const isSelected = selectedRoom?.id === room.id;
 
-                          const polygonPoints = room.polygon.map(p => 
-                            `${(p.x / 100) * imageDimensions.width},${(p.y / 100) * imageDimensions.height}`
-                          ).join(' ');
-
-                          const centerX = (room.position_x / 100) * imageDimensions.width + ((room.width || 0) / 100) * imageDimensions.width / 2;
-                          const centerY = (room.position_y / 100) * imageDimensions.height + ((room.height || 0) / 100) * imageDimensions.height / 2;
-
-                          return (
-                            <g key={room.id}>
-                              <polygon
-                                points={polygonPoints}
-                                fill={isSelected ? 'hsl(var(--primary))' : color}
-                                fillOpacity={isSelected ? 0.5 : 0.3}
-                                stroke={isSelected ? 'hsl(var(--primary))' : color}
-                                strokeWidth="2"
-                              />
-                              <text
-                                x={centerX}
-                                y={centerY}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                                fill="white"
-                                fontSize={Math.max(20, imageDimensions.width / 50)}
-                                fontWeight="bold"
-                                className="pointer-events-none select-none"
-                                style={{ textShadow: '0 0 4px rgba(0,0,0,0.8)' }}
-                              >
-                                {room.room_number}
-                              </text>
-                            </g>
-                          );
-                        })}
-                      </svg>
-                    )}
+                      return (
+                        <div
+                          key={room.id}
+                          className="absolute pointer-events-none"
+                          style={{
+                            left: `${room.position_x}%`,
+                            top: `${room.position_y}%`,
+                            width: `${room.width}%`,
+                            height: `${room.height}%`
+                          }}
+                        >
+                          <svg
+                            className="absolute inset-0 w-full h-full"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                          >
+                            <polygon
+                              points={room.polygon.map(p => 
+                                `${((p.x - room.position_x) / (room.width || 1)) * 100},${((p.y - room.position_y) / (room.height || 1)) * 100}`
+                              ).join(' ')}
+                              fill={isSelected ? 'hsl(var(--primary))' : color}
+                              fillOpacity={isSelected ? 0.5 : 0.3}
+                              stroke={isSelected ? 'hsl(var(--primary))' : color}
+                              strokeWidth="2"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-lg font-bold text-white drop-shadow-lg">
+                              {room.room_number}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </>
               ) : (
