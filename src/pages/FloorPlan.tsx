@@ -43,6 +43,7 @@ const FloorPlan = () => {
   const [floors, setFloors] = useState<Floor[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageRef, setImageRef] = useState<HTMLDivElement | null>(null);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     const fetchFloors = async () => {
@@ -53,8 +54,6 @@ const FloorPlan = () => {
         const data = await response.json();
         
         if (data.floors && data.floors.length > 0) {
-          console.log('Loaded floors:', data.floors);
-          console.log('First floor rooms:', data.floors[0].rooms);
           setFloors(data.floors);
           setSelectedFloor(data.floors[0].floor_number);
         }
@@ -78,11 +77,31 @@ const FloorPlan = () => {
   const availableRooms = floorRooms.filter(r => r.status === 'available');
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef) return;
+    if (!imageRef || imageDimensions.width === 0) return;
 
     const rect = imageRef.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    // Конвертируем клик в координаты изображения с учётом object-contain
+    const imgAspect = imageDimensions.width / imageDimensions.height;
+    const containerAspect = rect.width / rect.height;
+    
+    let displayWidth, displayHeight, offsetX, offsetY;
+    
+    if (containerAspect > imgAspect) {
+      // Контейнер шире изображения
+      displayHeight = rect.height;
+      displayWidth = displayHeight * imgAspect;
+      offsetX = (rect.width - displayWidth) / 2;
+      offsetY = 0;
+    } else {
+      // Контейнер уже изображения
+      displayWidth = rect.width;
+      displayHeight = displayWidth / imgAspect;
+      offsetX = 0;
+      offsetY = (rect.height - displayHeight) / 2;
+    }
+
+    const x = ((e.clientX - rect.left - offsetX) / displayWidth) * imageDimensions.width;
+    const y = ((e.clientY - rect.top - offsetY) / displayHeight) * imageDimensions.height;
 
     const clickedRoom = floorRooms.find(room => {
       if (room.polygon && room.polygon.length >= 3) {
@@ -191,30 +210,45 @@ const FloorPlan = () => {
                       src={currentFloor.plan_image_url}
                       alt={`План ${currentFloor.floor_number} этажа`}
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                      onLoad={(e) => {
+                        const img = e.currentTarget;
+                        setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+                      }}
                     />
 
-                    {floorRooms.map(room => {
-                      console.log('Rendering room:', room.room_number, 'polygon:', room.polygon, 'position:', room.position_x, room.position_y, room.width, room.height);
-                      
-                      if (!room.polygon || room.polygon.length < 3) {
-                        console.log('Skipping room (no polygon):', room.room_number);
-                        return null;
-                      }
+                    {imageDimensions.width > 0 && floorRooms.map(room => {
+                      if (!room.polygon || room.polygon.length < 3) return null;
 
                       const color = room.status === 'available' ? '#22c55e' : 
                                    room.status === 'occupied' ? '#ef4444' : '#94a3b8';
                       
                       const isSelected = selectedRoom?.id === room.id;
 
+                      // Вычисляем bounding box полигона
+                      const xs = room.polygon.map(p => p.x);
+                      const ys = room.polygon.map(p => p.y);
+                      const minX = Math.min(...xs);
+                      const minY = Math.min(...ys);
+                      const maxX = Math.max(...xs);
+                      const maxY = Math.max(...ys);
+                      const width = maxX - minX;
+                      const height = maxY - minY;
+
+                      // Конвертируем пиксели в проценты
+                      const leftPercent = (minX / imageDimensions.width) * 100;
+                      const topPercent = (minY / imageDimensions.height) * 100;
+                      const widthPercent = (width / imageDimensions.width) * 100;
+                      const heightPercent = (height / imageDimensions.height) * 100;
+
                       return (
                         <div
                           key={room.id}
                           className="absolute pointer-events-none"
                           style={{
-                            left: `${room.position_x}%`,
-                            top: `${room.position_y}%`,
-                            width: `${room.width}%`,
-                            height: `${room.height}%`
+                            left: `${leftPercent}%`,
+                            top: `${topPercent}%`,
+                            width: `${widthPercent}%`,
+                            height: `${heightPercent}%`
                           }}
                         >
                           <svg
@@ -224,7 +258,7 @@ const FloorPlan = () => {
                           >
                             <polygon
                               points={room.polygon.map(p => 
-                                `${((p.x - room.position_x) / (room.width || 1)) * 100},${((p.y - room.position_y) / (room.height || 1)) * 100}`
+                                `${((p.x - minX) / width) * 100},${((p.y - minY) / height) * 100}`
                               ).join(' ')}
                               fill={isSelected ? 'hsl(var(--primary))' : color}
                               fillOpacity={isSelected ? 0.5 : 0.3}
