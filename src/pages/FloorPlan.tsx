@@ -53,6 +53,8 @@ const FloorPlan = () => {
         const data = await response.json();
         
         if (data.floors && data.floors.length > 0) {
+          console.log('Loaded floors:', data.floors);
+          console.log('First floor rooms:', data.floors[0].rooms);
           setFloors(data.floors);
           setSelectedFloor(data.floors[0].floor_number);
         }
@@ -192,7 +194,12 @@ const FloorPlan = () => {
                     />
 
                     {floorRooms.map(room => {
-                      if (!room.polygon || room.polygon.length < 3) return null;
+                      console.log('Rendering room:', room.room_number, 'polygon:', room.polygon, 'position:', room.position_x, room.position_y, room.width, room.height);
+                      
+                      if (!room.polygon || room.polygon.length < 3) {
+                        console.log('Skipping room (no polygon):', room.room_number);
+                        return null;
+                      }
 
                       const color = room.status === 'available' ? '#22c55e' : 
                                    room.status === 'occupied' ? '#ef4444' : '#94a3b8';
