@@ -212,22 +212,41 @@ const RoomEditModal = ({
               </Button>
 
               {media.length > 0 && (
-                <div className="grid grid-cols-2 gap-2 mt-4">
+                <div className="grid grid-cols-3 gap-3 mt-4">
                   {media.map((item, index) => (
-                    <div key={index} className="relative border rounded-lg p-2 bg-muted">
-                      {item.type === 'image' ? (
-                        <img src={item.url} alt={`Media ${index + 1}`} className="w-full h-32 object-cover rounded" />
-                      ) : (
-                        <video src={item.url} className="w-full h-32 object-cover rounded" controls />
-                      )}
-                      <div className="flex gap-1 mt-2">
+                    <div key={index} className="relative group border rounded-lg overflow-hidden bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="relative aspect-square">
+                        {item.type === 'image' ? (
+                          <img 
+                            src={item.url} 
+                            alt={`Фото ${index + 1}`} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="relative w-full h-full bg-black flex items-center justify-center">
+                            <video 
+                              src={item.url} 
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+                              <Icon name="Play" size={32} className="text-white" />
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="absolute top-1 right-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
+                          {index + 1}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1 p-1.5 bg-background/95">
                         <Button
                           type="button"
                           size="sm"
                           variant="ghost"
                           onClick={() => handleMoveMedia(index, 'up')}
                           disabled={index === 0}
-                          className="flex-1"
+                          className="flex-1 h-7 px-1"
                         >
                           <Icon name="ArrowUp" size={14} />
                         </Button>
@@ -237,16 +256,16 @@ const RoomEditModal = ({
                           variant="ghost"
                           onClick={() => handleMoveMedia(index, 'down')}
                           disabled={index === media.length - 1}
-                          className="flex-1"
+                          className="flex-1 h-7 px-1"
                         >
                           <Icon name="ArrowDown" size={14} />
                         </Button>
                         <Button
                           type="button"
                           size="sm"
-                          variant="destructive"
+                          variant="ghost"
                           onClick={() => handleDeleteMedia(index)}
-                          className="flex-1"
+                          className="flex-1 h-7 px-1 text-destructive hover:text-destructive"
                         >
                           <Icon name="Trash2" size={14} />
                         </Button>
