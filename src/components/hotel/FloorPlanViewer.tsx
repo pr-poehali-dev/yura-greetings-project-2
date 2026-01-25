@@ -48,6 +48,12 @@ const FloorPlanViewer = ({ onRoomSelect }: FloorPlanViewerProps) => {
 
   useEffect(() => {
     loadFloors();
+    
+    const interval = setInterval(() => {
+      loadFloors();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadFloors = async () => {

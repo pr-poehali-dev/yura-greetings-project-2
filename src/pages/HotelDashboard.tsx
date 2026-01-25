@@ -77,6 +77,12 @@ const HotelDashboard = () => {
     }
 
     loadFloors();
+    
+    const interval = setInterval(() => {
+      loadFloors();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const handleLogout = () => {
