@@ -187,29 +187,17 @@ const FloorPlanViewer = ({ onRoomSelect }: FloorPlanViewerProps) => {
         </div>
 
         <div className="mb-4 p-3 bg-muted rounded-lg text-sm">
-          <strong>Подсказка:</strong> Нажмите на зелёный номер для выбора. 
-          Используйте колесико мыши для масштабирования плана.
+          <strong>Подсказка:</strong> Нажмите на зелёный номер для выбора.
         </div>
 
         <div
-          className="relative border-2 rounded-lg overflow-hidden"
+          className="relative border-2 rounded-lg overflow-auto"
           style={{ 
             minHeight: '600px',
-            cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'default'
+            maxHeight: '800px'
           }}
-          onWheel={handleWheel}
         >
-          <div
-            style={{
-              transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
-              transformOrigin: 'top left',
-              transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-            }}
-            onMouseMove={handleMouseMoveDrag}
-            onMouseDown={handleMouseDownDrag}
-            onMouseUp={handleMouseUpDrag}
-            onMouseLeave={handleMouseUpDrag}
-          >
+          <div className="relative inline-block min-w-full">
             <img
               ref={imgRef}
               src={currentFloorData.plan_image_url}
