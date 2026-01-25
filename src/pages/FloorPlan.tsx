@@ -2,31 +2,18 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import FloorPlanViewer from '@/components/hotel/FloorPlanViewer';
-import { useToast } from '@/hooks/use-toast';
-
-interface Room {
-  id: number;
-  room_number: string;
-  floor_id: number;
-  position_x: number;
-  position_y: number;
-  width?: number;
-  height?: number;
-  polygon?: Array<{x: number, y: number}>;
-  category: string;
-  price: number;
-  status: string;
-}
 
 const FloorPlan = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
   
   const checkInStr = searchParams.get('checkIn');
   const checkOutStr = searchParams.get('checkOut');
   const categoryFilter = searchParams.get('category');
+
+  const handleRedirectToAdmin = () => {
+    navigate(`/admin/rooms?checkIn=${checkInStr}&checkOut=${checkOutStr}${categoryFilter ? `&category=${categoryFilter}` : ''}`);
+  };
 
   if (!checkInStr || !checkOutStr) {
     return (
@@ -43,14 +30,6 @@ const FloorPlan = () => {
     );
   }
 
-  const handleRoomSelect = (room: Room) => {
-    navigate(`/booking?roomId=${room.id}&checkIn=${checkInStr}&checkOut=${checkOutStr}`);
-    toast({
-      title: "Номер выбран",
-      description: `Вы выбрали номер ${room.room_number}`
-    });
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-50">
@@ -65,7 +44,17 @@ const FloorPlan = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <FloorPlanViewer onRoomSelect={handleRoomSelect} />
+        <Card className="p-12 text-center max-w-2xl mx-auto">
+          <Icon name="Map" size={64} className="mx-auto mb-6 text-primary" />
+          <h2 className="text-3xl font-bold mb-4">Выбор номера на плане</h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Для удобства выбора номера на интерактивном плане этажа, перейдите в режим администратора
+          </p>
+          <Button size="lg" onClick={handleRedirectToAdmin}>
+            <Icon name="LayoutDashboard" className="mr-2" size={20} />
+            Перейти к выбору номера
+          </Button>
+        </Card>
       </div>
     </div>
   );
