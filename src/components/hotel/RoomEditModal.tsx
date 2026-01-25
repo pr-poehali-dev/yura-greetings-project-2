@@ -86,9 +86,10 @@ const RoomEditModal = ({
             </select>
           </div>
 
-          <div className="flex gap-2 justify-between">
+          <div>
             <Button 
               variant="outline" 
+              className="w-full"
               onClick={() => {
                 if (onEditBorders && selectedRoom) {
                   onEditBorders(selectedRoom);
@@ -99,17 +100,18 @@ const RoomEditModal = ({
               <Icon name="Edit" size={16} className="mr-2" />
               Редактировать границы
             </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose} disabled={loading}>
-                Отмена
-              </Button>
-              <Button variant="destructive" onClick={() => onDelete(selectedRoom.id)} disabled={loading}>
-                Удалить
-              </Button>
-              <Button onClick={onUpdate} disabled={loading}>
-                Сохранить
-              </Button>
-            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-2">
+            <Button variant="outline" onClick={onClose} disabled={loading}>
+              Отмена
+            </Button>
+            <Button variant="destructive" onClick={() => onDelete(selectedRoom.id)} disabled={loading}>
+              Удалить
+            </Button>
+            <Button onClick={onUpdate} disabled={loading}>
+              Сохранить
+            </Button>
           </div>
         </div>
       </Card>
